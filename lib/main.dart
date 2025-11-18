@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tourist_safety_hub/screens/splash_screen.dart';
 import 'package:tourist_safety_hub/screens/dashboard_screen.dart';
 import 'package:tourist_safety_hub/screens/profile_screen.dart';
 import 'package:tourist_safety_hub/screens/explore_screen.dart';
@@ -48,7 +49,10 @@ class TouristSafetyHub extends StatelessWidget {
           ),
         ),
       ),
-      home: const MainNavigationScreen(),
+      home: const SplashScreen(),
+      routes: {
+        '/home': (context) => const MainNavigationScreen(),
+      },
       debugShowCheckedModeBanner: false,
     );
   }

@@ -48,17 +48,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 12),
               _buildInfoCard('Member Since', 'January 2025'),
               const SizedBox(height: 24),
-              // Edit Profile Button
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.edit),
-                label: const Text('Edit Profile'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[800],
-                  minimumSize: const Size(double.infinity, 48),
-                ),
-              ),
-              const SizedBox(height: 12),
               // Emergency Contacts
               Container(
                 padding: const EdgeInsets.all(16),

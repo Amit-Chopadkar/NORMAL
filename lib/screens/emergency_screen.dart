@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'incident_report_screen.dart';
+import '../services/location_service.dart';
 
 class EmergencyScreen extends StatefulWidget {
   const EmergencyScreen({super.key});
@@ -9,6 +12,66 @@ class EmergencyScreen extends StatefulWidget {
 }
 
 class _EmergencyScreenState extends State<EmergencyScreen> {
+  bool _sosPressed = false;
+
+  Future<void> _sendSOSAlert() async {
+    try {
+      // Get current location
+      final position = await LocationService.getCurrentLocation();
+      final location = {
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'timestamp': DateTime.now(),
+        'type': 'SOS',
+      };
+
+      // Send SOS alert to Firestore admin dashboard
+      await FirebaseFirestore.instance
+          .collection('alerts')
+          .add({
+        'alert_type': 'SOS',
+        'location': location,
+        'user_id': 'current_user_id',
+        'timestamp': DateTime.now(),
+        'status': 'active',
+      });
+
+      // Show success feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('SOS Alert Sent to Emergency Services!'),
+            duration: Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error sending SOS: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _makeEmergencyCall(String phoneNumber) async {
+    final url = 'tel:$phoneNumber';
+    try {
+      // Try to launch with tel: scheme
+      await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error launching dialer: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,47 +88,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // SOS Button
-              Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.red,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withOpacity(0.3),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: GestureDetector(
-                  onTap: () {
-                    _showSOSDialog();
-                  },
-                  child: const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.emergency, size: 64, color: Colors.white),
-                        SizedBox(height: 8),
-                        Text(
-                          'SOS',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'Press and Hold',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              // SOS Button with Animation
+              _buildSOSButton(),
               const SizedBox(height: 32),
               // Emergency Services
               const Text(
@@ -94,7 +118,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
               const SizedBox(height: 12),
               // Call Police Button
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  _makeEmergencyCall('100');
+                },
                 icon: const Icon(Icons.phone),
                 label: const Text('Call Police'),
                 style: ElevatedButton.styleFrom(
@@ -119,6 +145,55 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                   backgroundColor: Colors.orange,
                   minimumSize: const Size(double.infinity, 48),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSOSButton() {
+    return GestureDetector(
+      onTap: () {
+        if (!_sosPressed) {
+          _showSOSConfirmDialog();
+        }
+      },
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: _sosPressed ? Colors.green : Colors.red,
+          boxShadow: [
+            BoxShadow(
+              color: (_sosPressed ? Colors.green : Colors.red).withOpacity(0.3),
+              blurRadius: 20,
+              spreadRadius: 5,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                _sosPressed ? Icons.check_circle : Icons.emergency,
+                size: 64,
+                color: Colors.white,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _sosPressed ? 'ALERT SENT' : 'SOS',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                _sosPressed ? 'Emergency Services Notified' : 'Press to Send Alert',
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
               ),
             ],
           ),
@@ -166,7 +241,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             ],
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              _makeEmergencyCall(number);
+            },
             icon: Icon(Icons.call, color: color),
           ),
         ],
@@ -174,13 +251,16 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     );
   }
 
-  void _showSOSDialog() {
+  void _showSOSConfirmDialog() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('SOS Alert'),
-          content: const Text('Are you in danger? This will alert emergency services.'),
+          title: const Text('SOS Alert', style: TextStyle(color: Colors.red)),
+          content: const Text(
+            'Are you in immediate danger? This will send an alert to emergency services and your emergency contacts with your current location.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -189,12 +269,21 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('SOS Alert Sent!')),
-                );
+                _sendSOSAlert();
+                setState(() {
+                  _sosPressed = true;
+                });
+                // Reset button after 5 seconds
+                Future.delayed(const Duration(seconds: 5), () {
+                  if (mounted) {
+                    setState(() {
+                      _sosPressed = false;
+                    });
+                  }
+                });
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Send SOS'),
+              child: const Text('Send SOS Alert'),
             ),
           ],
         );
