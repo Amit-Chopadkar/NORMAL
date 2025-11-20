@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -56,7 +57,10 @@ class IncidentService {
       List<Map<String, dynamic>> incidents = [];
 
       for (var key in box.keys) {
-        incidents.add(box.get(key) as Map<String, dynamic>);
+        final raw = box.get(key);
+        if (raw is Map) {
+          incidents.add(Map<String, dynamic>.from(raw));
+        }
       }
 
       return incidents;
@@ -180,7 +184,9 @@ class IncidentService {
       List<Map<String, dynamic>> nearby = [];
 
       for (var key in box.keys) {
-        Map<String, dynamic> incident = box.get(key);
+        final raw = box.get(key);
+        if (raw is! Map) continue;
+        Map<String, dynamic> incident = Map<String, dynamic>.from(raw);
         double distance = _calculateDistance(
           latitude,
           longitude,
@@ -188,7 +194,11 @@ class IncidentService {
           incident['location']['longitude'],
         );
 
-        if (distance <= radiusKm * 1000) {
+        // _calculateDistance returns kilometers. Compare against radiusKm (km).
+        if (kDebugMode) {
+          debugPrint('[IncidentService] Distance to ${incident['id'] ?? 'unknown'}: ${distance.toStringAsFixed(3)} km (radius ${radiusKm} km)');
+        }
+        if (distance <= radiusKm) {
           nearby.add(incident);
         }
       }

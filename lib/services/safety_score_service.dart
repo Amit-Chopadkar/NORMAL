@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'gemini_service.dart';
@@ -62,11 +63,23 @@ ${jsonEncode(contextPayload)}
 ''';
 
     try {
+      if (kDebugMode) {
+        print('[SafetyScoreService] Sending prompt to Gemini with payload: ${jsonEncode(contextPayload)}');
+      }
       final response = await GeminiService.generateSafetyInsights(prompt);
+      if (kDebugMode) {
+        print('[SafetyScoreService] Gemini raw response: ${response.substring(0, response.length > 200 ? 200 : response.length)}');
+      }
       final parsed = _tryParseJson(response);
       parsed['fromAi'] = true;
+      if (kDebugMode) {
+        print('[SafetyScoreService] Parsed safety score: $parsed');
+      }
       return parsed;
     } catch (_) {
+      if (kDebugMode) {
+        print('[SafetyScoreService] Gemini failed, using fallback score');
+      }
       return _buildFallbackScore(
         address: address ?? 'Unknown',
         summary: _buildIncidentSummary(incidents ?? []),
@@ -126,6 +139,11 @@ ${jsonEncode(contextPayload)}
     score -= high * 8;
     score -= medium * 5;
     score -= total.clamp(0, 5) * 2;
+    // Add a small deterministic but varying offset so fallback score reflects
+    // changes in location/time and avoids appearing completely static.
+    final offsetSeed = (address.hashCode.abs() + DateTime.now().minute) % 5; // 0..4
+    final variability = offsetSeed - 2; // -2..+2
+    score += variability;
     score = score.clamp(20, 95);
 
     final zoneStatus = score >= 75

@@ -2,13 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
+import '../services/notification_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'geofence_events_screen.dart';
 
 import '../services/active_alert_service.dart';
 import '../services/incident_service.dart';
 import '../services/location_service.dart';
 import '../services/safety_score_service.dart';
+import '../utils/constants.dart';
+import '../utils/geofence_helper.dart';
 import '../services/weather_service.dart';
 import '../widgets/chatbot_widget.dart';
 
@@ -24,7 +29,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   static const MethodChannel _notifyChannel = MethodChannel('tourapp/notifications');
   static const double _safetyRadiusKm = 3;
   StreamSubscription<Position>? _positionSub;
+  // Last known position used to filter small updates
+  Position? _lastProcessedPosition;
   bool _notifiedZone = false;
+  // Track per-zone inside/outside state to send enter/exit notifications
+  final Map<String, bool> _zoneStates = {};
   bool chatbotOpen = false;
   Position? _currentPosition;
   final Set<Marker> _markers = {};
@@ -58,34 +67,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _startGeofenceMonitor() {
     _positionSub?.cancel();
     _positionSub = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 10),
+      // Increase distanceFilter to reduce update frequency and CPU work
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 50),
     ).listen(_handleLivePosition);
   }
 
   void _handleLivePosition(Position pos) {
     if (!mounted) return;
+    // Ignore very small movements to avoid excessive UI rebuilds and network calls
+    if (_lastProcessedPosition != null) {
+      final moved = Geolocator.distanceBetween(
+        _lastProcessedPosition!.latitude,
+        _lastProcessedPosition!.longitude,
+        pos.latitude,
+        pos.longitude,
+      );
+      if (moved < 5) {
+        return;
+      }
+    }
+    _lastProcessedPosition = pos;
     setState(() {
       _currentPosition = pos;
     });
     _evaluateGeofenceStatus(pos);
+    // Reduce refresh frequency to avoid network bursts and main-thread work
     final shouldRefresh = _lastSafetyUpdate == null ||
-        DateTime.now().difference(_lastSafetyUpdate!) >= const Duration(seconds: 45);
+        DateTime.now().difference(_lastSafetyUpdate!) >= const Duration(seconds: 60);
     if (shouldRefresh) {
       _refreshSafetyScore();
     }
     final shouldRefreshWeather = _lastWeatherUpdate == null ||
-        DateTime.now().difference(_lastWeatherUpdate!) >= const Duration(minutes: 2);
+        DateTime.now().difference(_lastWeatherUpdate!) >= const Duration(minutes: 5);
     if (shouldRefreshWeather) {
       _refreshWeather();
     }
     final shouldRefreshAlerts = _lastAlertUpdate == null ||
-        DateTime.now().difference(_lastAlertUpdate!) >= const Duration(minutes: 2);
+        DateTime.now().difference(_lastAlertUpdate!) >= const Duration(minutes: 5);
     if (shouldRefreshAlerts) {
       _refreshActiveAlerts();
     }
   }
 
-  void _evaluateGeofenceStatus(Position pos) {
+  Future<void> _evaluateGeofenceStatus(Position pos) async {
     for (final circle in _circles) {
       final dist = Geolocator.distanceBetween(
         pos.latitude,
@@ -93,13 +117,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
         circle.center.latitude,
         circle.center.longitude,
       );
-      if (dist <= circle.radius && !_notifiedZone) {
-        _notifiedZone = true;
-        _showSystemNotification('Entered Zone', 'You entered ${circle.circleId.value}');
+      final id = circle.circleId.value;
+      final isInside = dist <= circle.radius;
+
+      final previous = _zoneStates[id] ?? false;
+      // Transition: entered
+      if (isInside && !previous) {
+        _zoneStates[id] = true;
+        final zoneName = _zoneNameForId(id) ?? id;
+        // Persist event to Hive
+        _logGeofenceEvent(zoneId: id, zoneName: zoneName, event: 'enter', lat: pos.latitude, lng: pos.longitude);
+        // Send user notification
+        await NotificationService.showAlertNotification(title: 'Entered Zone', body: 'You entered $zoneName', type: 'geofence_enter');
         break;
       }
-      if (dist > circle.radius) {
-        _notifiedZone = false;
+
+      // Transition: exited
+      if (!isInside && previous) {
+        _zoneStates[id] = false;
+        final zoneName = _zoneNameForId(id) ?? id;
+        _logGeofenceEvent(zoneId: id, zoneName: zoneName, event: 'exit', lat: pos.latitude, lng: pos.longitude);
+        await NotificationService.showAlertNotification(title: 'Exited Zone', body: 'You exited $zoneName', type: 'geofence_exit');
+        break;
+      }
+      // No transition: keep state as-is
+      if (!_zoneStates.containsKey(id)) {
+        _zoneStates[id] = isInside;
       }
     }
   }
@@ -123,6 +166,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
     }
     try {
+      // Debug: log that a refresh has started
+      // Avoid importing foundation at top-level; using debugPrint to keep output concise
+      debugPrint('[Dashboard] Refreshing safety score at position: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}');
       final address = await LocationService.getAddressFromCoordinates(
         _currentPosition!.latitude,
         _currentPosition!.longitude,
@@ -132,12 +178,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _currentPosition!.longitude,
         _safetyRadiusKm,
       );
+      debugPrint('[Dashboard] Nearby incidents count: ${incidents.length}');
       final data = await SafetyScoreService.getLiveSafetyScore(
         position: _currentPosition!,
         radiusKm: _safetyRadiusKm,
         incidents: incidents,
         address: address,
       );
+      debugPrint('[Dashboard] Received safety score data: $data');
       if (!mounted) return;
       setState(() {
         _currentAddress = address;
@@ -300,33 +348,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       await _refreshActiveAlerts(force: true);
 
       // Predefined geofence circles
-      _circles.addAll([
-        Circle(
-          circleId: const CircleId('remote_forest'),
-          center: LatLng(pos.latitude + 0.01, pos.longitude + 0.02),
-          radius: 2000, // meters
-          fillColor: Colors.red.withValues(alpha: 0.1),
-          strokeColor: Colors.red.withValues(alpha: 0.6),
-        ),
-        Circle(
-          circleId: const CircleId('market_area'),
-          center: LatLng(pos.latitude + 0.002, pos.longitude + 0.005),
-          radius: 800,
-          fillColor: Colors.orange.withValues(alpha: 0.1),
-          strokeColor: Colors.orange.withValues(alpha: 0.6),
-        ),
-        Circle(
-          circleId: const CircleId('industrial_zone'),
-          center: LatLng(pos.latitude - 0.012, pos.longitude - 0.01),
-          radius: 1500,
-          fillColor: Colors.purple.withValues(alpha: 0.08),
-          strokeColor: Colors.purple.withValues(alpha: 0.6),
-        ),
-      ]);
+      // Use helper to build fixed circles from constants
+      _circles.addAll(GeofenceHelper.buildFixedCircles());
       setState(() {});
-      // Check if user is already inside any zone and trigger notification if so
+      // Initialize per-zone state based on current position (no notifications)
       if (_currentPosition != null && _circles.isNotEmpty) {
-        _evaluateGeofenceStatus(_currentPosition!);
+        for (final circle in _circles) {
+          final dist = Geolocator.distanceBetween(
+            _currentPosition!.latitude,
+            _currentPosition!.longitude,
+            circle.center.latitude,
+            circle.center.longitude,
+          );
+          _zoneStates[circle.circleId.value] = dist <= circle.radius;
+        }
       }
     } catch (e) {
       // ignore
@@ -384,26 +419,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ],
                       ),
-                      Stack(
-                        children: [
-                          const Icon(
-                            Icons.notifications_outlined,
-                            size: 28,
-                            color: Colors.grey,
-                          ),
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
+                      GestureDetector(
+                        onTap: () async {
+                          // Open in-app geofence events viewer
+                          await Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => const GeofenceEventsScreen(),
+                          ));
+                        },
+                        child: Stack(
+                          children: [
+                            const Icon(
+                              Icons.notifications_outlined,
+                              size: 28,
+                              color: Colors.grey,
+                            ),
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -659,11 +702,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 });
               },
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  const Icon(Icons.smart_toy_outlined),
+                  const Icon(Icons.smart_toy_outlined, color: Colors.white),
                   Positioned(
-                    top: 0,
-                    right: 0,
+                    top: -18,
+                    right: -18,
                     child: Container(
                       width: 16,
                       height: 16,
@@ -809,6 +853,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
     if (diff.inHours < 24) return '${diff.inHours} hr ago';
     return '${diff.inDays} d ago';
+  }
+
+  String? _zoneNameForId(String id) {
+    try {
+      final zones = AppConstants.geofenceZones;
+      for (final z in zones) {
+        if ((z['id'] as String) == id) return (z['name'] as String?) ?? id;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> _logGeofenceEvent({required String zoneId, required String zoneName, required String event, required double lat, required double lng}) async {
+    try {
+      const boxName = 'geofence_events';
+      if (!Hive.isBoxOpen(boxName)) {
+        await Hive.openBox(boxName);
+      }
+      final box = Hive.box(boxName);
+      final id = 'GE-${DateTime.now().millisecondsSinceEpoch}';
+      final payload = {
+        'id': id,
+        'zoneId': zoneId,
+        'zoneName': zoneName,
+        'event': event,
+        'latitude': lat,
+        'longitude': lng,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+      await box.put(id, payload);
+      debugPrint('[Geofence] Logged event: $payload');
+    } catch (e) {
+      debugPrint('[Geofence] Failed to log event: $e');
+    }
   }
 
   Widget _buildSafetyItem(String label, String value, Color valueColor) {

@@ -40,7 +40,7 @@ class EmergencyService {
 
   static Future<void> triggerSOS({
     required String currentLocation,
-    required List<Contact> emergencyContacts,
+    required List<Map<String, dynamic>> emergencyContacts,
   }) async {
     // 1. Play siren sound
     final audioPlayer = AudioPlayer();
@@ -49,7 +49,9 @@ class EmergencyService {
     // 2. Send location to emergency contacts (simulated)
     for (final contact in emergencyContacts) {
       // In real app, send SMS with location
-      print('Alerting ${contact.name} at ${contact.phone}');
+      final name = contact['name'] ?? 'Contact';
+      final phone = contact['phone'] ?? 'unknown';
+      print('Alerting $name at $phone');
       print('Emergency at: $currentLocation');
     }
 

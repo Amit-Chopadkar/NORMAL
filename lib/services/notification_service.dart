@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 class NotificationService {
+  static final MethodChannel _platform = MethodChannel('tourapp/notifications');
+
   static Future<void> initialize() async {
-    // Notifications plugin temporarily disabled for local build.
-    // In production, re-enable `flutter_local_notifications` and restore initialization.
-    debugPrint('NotificationService initialized (stub)');
+    // Keep init lightweight — platform channel is handled in native MainActivity
+    debugPrint('NotificationService initialized (platform channel)');
   }
 
   static Future<void> showAlertNotification({required String title, required String body, required String type}) async {
-    debugPrint('AlertNotification: $title - $body ($type)');
+    try {
+      await _platform.invokeMethod('showNotification', {'title': title, 'body': body});
+    } catch (e) {
+      debugPrint('Platform channel notification failed: $e');
+    }
   }
 
   static Future<void> showEmergencyNotification() async {
-    debugPrint('Emergency notification triggered (stub)');
+    await showAlertNotification(title: 'Emergency', body: 'Emergency triggered', type: 'emergency');
   }
 }

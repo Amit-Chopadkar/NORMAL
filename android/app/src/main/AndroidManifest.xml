@@ -1,11 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permissions for emergency calling, location, geofencing and background services -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Required for Google Maps and network access -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
-
     <application
         android:label="tourist_safety_hub"
         android:name="${applicationName}"
@@ -13,7 +17,7 @@
         <!-- Google Maps API Key: replace the value below with your API key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="REPLACE_WITH_YOUR_GOOGLE_MAPS_API_KEY" />
+            android:value="AIzaSyAOVYRIgupAurZup5y1PRh8Ismb1A3lLao" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

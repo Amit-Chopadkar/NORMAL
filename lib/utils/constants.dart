@@ -30,6 +30,9 @@ class AppConstants {
   static const IconData profileIcon = Icons.person;
   static const IconData settingsIcon = Icons.settings;
   static const IconData exploreIcon = Icons.explore;
+
+  // Expose the demo geofence zones from DemoData for backward compatibility
+  static List<Map<String, dynamic>> get geofenceZones => DemoData.geofenceZones;
 }
 
 class DemoData {
@@ -85,6 +88,19 @@ class DemoData {
       'rating': 4.3,
       'latitude': 20.0112,
       'longitude': 73.7909,
+    },
+  ];
+
+  // Predefined geofence zones with fixed coordinates (latitude, longitude) and radius in meters.
+  // These are constant zones and do not move with the user's location.
+  static final List<Map<String, dynamic>> geofenceZones = [
+    {
+      'id': 'RED_ZONE_1',
+      'name': 'Danger zone ',
+      'latitude': 20.0000,
+      'longitude': 73.7800,
+      'radius': 1840,
+      'color': 0xFFFF0000,
     },
   ];
 }
