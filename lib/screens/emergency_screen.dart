@@ -27,9 +27,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       };
 
       // Send SOS alert to Firestore admin dashboard
-      await FirebaseFirestore.instance
-          .collection('alerts')
-          .add({
+      await FirebaseFirestore.instance.collection('alerts').add({
         'alert_type': 'SOS',
         'location': location,
         'user_id': 'current_user_id',
@@ -78,88 +76,92 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     return ValueListenableBuilder<String>(
       valueListenable: LocalizationService.languageNotifier,
       builder: (context, language, _) {
-        return _buildEmergency();
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 20),
+                _buildSOSButton(),
+                const SizedBox(height: 30),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      Text(
+                        tr('emergency_contacts_title'),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black.withOpacity(0.8),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildContactsGrid(),
+                      const SizedBox(height: 30),
+                      _buildActionButtons(),
+                      const SizedBox(height: 30),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       },
     );
   }
 
-  Widget _buildEmergency() {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(tr('emergency')),
-        centerTitle: true,
-        backgroundColor: Colors.red,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      backgroundColor: Colors.red[50],
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // SOS Button with Animation
-              _buildSOSButton(),
-              const SizedBox(height: 32),
-              // Emergency Services
-              Text(
-                tr('emergency_contacts_title'),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  Widget _buildHeader() {
+    return Stack(
+      children: [
+        ClipPath(
+          clipper: HeaderClipper(),
+          child: Container(
+            height: 280,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF7B61FF), // Purple
+                  Color(0xFF6C5DD3),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildEmergencyContact(tr('police'), '100', Colors.blue),
-              const SizedBox(height: 12),
-              _buildEmergencyContact(tr('ambulance'), '102', Colors.green),
-              const SizedBox(height: 12),
-              _buildEmergencyContact(tr('fire'), '101', Colors.orange),
-              const SizedBox(height: 12),
-              _buildEmergencyContact('Local Police Station', '+91 2560 234567', Colors.indigo),
-              const SizedBox(height: 32),
-              // Share Location Button
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.location_on),
-                label: Text(tr('share_location')),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  minimumSize: const Size(double.infinity, 48),
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Call Police Button
-              ElevatedButton.icon(
-                onPressed: () {
-                  _makeEmergencyCall('100');
-                },
-                icon: const Icon(Icons.phone),
-                label: Text(tr('call_police')),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  minimumSize: const Size(double.infinity, 48),
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Report Incident Button
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const IncidentReportScreen(),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 50), // Increased spacing since notch is gone
+                  Text(
+                    'Are you in emergency',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                },
-                icon: const Icon(Icons.report_problem),
-                label: Text(tr('report_incident')),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  minimumSize: const Size(double.infinity, 48),
-                ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Text(
+                      'Press the button below help will reach you soon',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -171,94 +173,212 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
         }
       },
       child: Container(
+        width: 200,
         height: 200,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: _sosPressed ? Colors.green : Colors.red,
+          color: _sosPressed ? Colors.green : const Color(0xFFEF4444), // Red or Green
           boxShadow: [
             BoxShadow(
-              color: (_sosPressed ? Colors.green : Colors.red).withOpacity(0.3),
-              blurRadius: 20,
-              spreadRadius: 5,
+              color: (_sosPressed ? Colors.green : const Color(0xFFEF4444)).withOpacity(0.2),
+              blurRadius: 30,
+              spreadRadius: 15,
+            ),
+            BoxShadow(
+              color: Colors.white.withOpacity(0.8),
+              blurRadius: 0,
+              spreadRadius: -15,
             ),
           ],
+          border: Border.all(
+            color: _sosPressed ? Colors.green.shade100 : Colors.red.shade100,
+            width: 20,
+          ),
         ),
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                _sosPressed ? Icons.check_circle : Icons.emergency,
-                size: 64,
-                color: Colors.white,
-              ),
-              const SizedBox(height: 8),
-              Text(
+          child: Padding(
+            padding: const EdgeInsets.all(40.0),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
                 _sosPressed ? tr('alert_sent') : tr('sos'),
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 32,
+                  fontSize: 48,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
                 ),
               ),
-              Text(
-                _sosPressed
-                    ? tr('emergency_services_notified')
-                    : tr('press_to_send_alert'),
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildEmergencyContact(String name, String number, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color),
+  Widget _buildContactsGrid() {
+    final contacts = [
+      {
+        'name': tr('police'),
+        'icon': Icons.local_police_outlined,
+        'color': const Color(0xFF7B61FF),
+        'number': '100'
+      },
+      {
+        'name': tr('fire'), // Was 'Firefighters' in design, but tr('fire') in original
+        'icon': Icons.local_fire_department_outlined,
+        'color': const Color(0xFF7B61FF),
+        'number': '101'
+      },
+      {
+        'name': tr('ambulance'),
+        'icon': Icons.medical_services_outlined,
+        'color': const Color(0xFF7B61FF),
+        'number': '102'
+      },
+      {
+        'name': 'Local Police', // Original had 'Local Police Station' hardcoded too
+        'icon': Icons.local_taxi_outlined,
+        'color': const Color(0xFF7B61FF),
+        'number': '+91 2560 234567'
+      },
+    ];
+
+    return GridView.builder(
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 15,
+        mainAxisSpacing: 15,
+        childAspectRatio: 2.5,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  shape: BoxShape.circle,
+      itemCount: contacts.length,
+      itemBuilder: (context, index) {
+        final contact = contacts[index];
+        return InkWell(
+          onTap: () => _makeEmergencyCall(contact['number'] as String),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 2,
                 ),
-                child: Icon(Icons.phone, color: color),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: (contact['color'] as Color).withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
-                  Text(
-                    number,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  child: Icon(
+                    contact['icon'] as IconData,
+                    color: contact['color'] as Color,
+                    size: 20,
                   ),
-                ],
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    contact['name'] as String,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        _buildActionButton(
+          tr('call_police'),
+          Icons.phone_in_talk,
+          const Color(0xFFEF4444),
+          () => _makeEmergencyCall('100'),
+        ),
+        const SizedBox(height: 15),
+        _buildActionButton(
+          tr('report_incident'),
+          Icons.warning_amber_rounded,
+          const Color(0xFFF59E0B),
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const IncidentReportScreen(),
               ),
-            ],
-          ),
-          IconButton(
-            onPressed: () {
-              _makeEmergencyCall(number);
-            },
-            icon: Icon(Icons.call, color: color),
-          ),
-        ],
+            );
+          },
+        ),
+        const SizedBox(height: 15),
+        _buildActionButton(
+          tr('share_location'),
+          Icons.location_on_outlined,
+          const Color(0xFF7B61FF),
+          () {
+            // Existing logic for location sharing
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton(
+      String title, IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color),
+            ),
+            const SizedBox(width: 20),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -306,3 +426,29 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     );
   }
 }
+
+class HeaderClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    var path = Path();
+    path.lineTo(0, size.height - 50);
+    var firstControlPoint = Offset(size.width / 4, size.height);
+    var firstEndPoint = Offset(size.width / 2, size.height);
+    path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy,
+        firstEndPoint.dx, firstEndPoint.dy);
+
+    var secondControlPoint =
+        Offset(size.width - (size.width / 4), size.height);
+    var secondEndPoint = Offset(size.width, size.height - 50);
+    path.quadraticBezierTo(secondControlPoint.dx, secondControlPoint.dy,
+        secondEndPoint.dx, secondEndPoint.dy);
+
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+

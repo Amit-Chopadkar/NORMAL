@@ -87,41 +87,46 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home),
-            label: tr('dashboard'),
-            backgroundColor: Colors.blue[800],
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.person_outline),
-            label: tr('profile'),
-            backgroundColor: Colors.blue[800],
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.explore_outlined),
-            label: tr('explore'),
-            backgroundColor: Colors.blue[800],
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.warning_amber_rounded),
-            label: tr('emergency'),
-            backgroundColor: Colors.blue[800],
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.settings_outlined),
-            label: tr('settings'),
-            backgroundColor: Colors.blue[800],
-          ),
-        ],
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },//ppp
+      bottomNavigationBar: ValueListenableBuilder<String>(
+        valueListenable: LocalizationService.languageNotifier,
+        builder: (context, language, child) {
+          return BottomNavigationBar(
+            items: [
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.home),
+                label: tr('dashboard'),
+                backgroundColor: Colors.blue[800],
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.person_outline),
+                label: tr('profile'),
+                backgroundColor: Colors.blue[800],
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.explore_outlined),
+                label: tr('explore'),
+                backgroundColor: Colors.blue[800],
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.warning_amber_rounded),
+                label: tr('emergency'),
+                backgroundColor: Colors.blue[800],
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.settings_outlined),
+                label: tr('settings'),
+                backgroundColor: Colors.blue[800],
+              ),
+            ],
+            type: BottomNavigationBarType.fixed,
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+          );
+        },
       ),
     );
   }
