@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/notification_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -39,6 +42,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Position? _currentPosition;
   final Set<Marker> _markers = {};
   final Set<Circle> _circles = {};
+  bool _isGeofencePopupVisible = false;
   List<Map<String, dynamic>> _localIncidents = [];
   Map<String, dynamic>? _safetyScoreData;
   bool _isSafetyLoading = false;
@@ -130,6 +134,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _logGeofenceEvent(zoneId: id, zoneName: zoneName, event: 'enter', lat: pos.latitude, lng: pos.longitude);
         // Send user notification
         await NotificationService.showAlertNotification(title: 'Entered Zone', body: 'You entered $zoneName', type: 'geofence_enter');
+        _showGeofencePopup(
+          title: 'Entered Zone',
+          message: 'You entered $zoneName',
+        );
         break;
       }
 
@@ -139,6 +147,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final zoneName = _zoneNameForId(id) ?? id;
         _logGeofenceEvent(zoneId: id, zoneName: zoneName, event: 'exit', lat: pos.latitude, lng: pos.longitude);
         await NotificationService.showAlertNotification(title: 'Exited Zone', body: 'You exited $zoneName', type: 'geofence_exit');
+        _showGeofencePopup(
+          title: 'Exited Zone',
+          message: 'You exited $zoneName',
+        );
         break;
       }
       // No transition: keep state as-is
@@ -551,22 +563,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // Map
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          height: 200,
-                          color: Colors.grey[300],
-                          child: _currentPosition == null
-                              ? const Center(child: CircularProgressIndicator())
-                              : GoogleMap(
-                                  initialCameraPosition: CameraPosition(
-                                    target: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-                                    zoom: 14,
-                                  ),
-                                  myLocationEnabled: true,
-                                  myLocationButtonEnabled: false,
-                                  mapToolbarEnabled: true,
-                                  markers: _markers,
-                                  circles: _circles,
+                        child: SizedBox(
+                          height: 300,
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: Container(
+                                  color: Colors.grey[300],
+                                  child: _currentPosition == null
+                                      ? const Center(child: CircularProgressIndicator())
+                                      : GoogleMap(
+                                          initialCameraPosition: CameraPosition(
+                                            target: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+                                            zoom: 14,
+                                          ),
+                                          myLocationEnabled: true,
+                                          myLocationButtonEnabled: false,
+                                          mapToolbarEnabled: true,
+                                          markers: _markers,
+                                          circles: _circles,
+                                        ),
                                 ),
+                              ),
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Column(
+                                  children: [
+                                    _buildMapActionButton(
+                                      icon: Icons.navigation_outlined,
+                                      tooltip: tr('start_navigation'),
+                                      onTap: () => _openTurnByTurnNavigation(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -611,9 +644,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 8),
                       _buildNearbyZone('Tourist Zone', '0.2 km', 'SAFE', Colors.green),
                       const SizedBox(height: 8),
-                      _buildNearbyZone('Market Area', '0.5 km', 'CAUTION', Colors.orange),
+                      _buildNearbyZone('Remote Zone', '0.5 km', 'CAUTION', Colors.orange),
                       const SizedBox(height: 8),
-                      _buildNearbyZone('Remote forest', '2.1 km', 'Danger', Colors.red),
+                      _buildNearbyZone('Danger Zone', '2.1 km', 'Danger', Colors.red),
                     ],
                   ),
                 ),
@@ -1038,5 +1071,109 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildMapActionButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        shape: const CircleBorder(),
+        elevation: 3,
+        color: Colors.white,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: SizedBox(
+            height: 44,
+            width: 44,
+            child: Icon(
+              icon,
+              color: Colors.blue[800],
+              size: 22,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openTurnByTurnNavigation(BuildContext context) async {
+    if (_currentPosition == null) {
+      _showMapMessage(context, tr('location_unavailable'));
+      return;
+    }
+    final lat = _currentPosition!.latitude;
+    final lng = _currentPosition!.longitude;
+    final nativeUri = Uri.parse('google.navigation:q=$lat,$lng&mode=d');
+    final webFallback = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving');
+
+    final launchedNative = await _tryLaunchUri(nativeUri);
+    if (launchedNative) return;
+
+    final launchedWeb = await _tryLaunchUri(webFallback);
+    if (!launchedWeb && mounted) {
+      _showMapMessage(context, tr('navigation_launch_failed'));
+    }
+  }
+
+  Future<void> _openInGoogleMaps(BuildContext context) async {
+    if (_currentPosition == null) {
+      _showMapMessage(context, tr('location_unavailable'));
+      return;
+    }
+    final lat = _currentPosition!.latitude;
+    final lng = _currentPosition!.longitude;
+    final geoUri = Uri.parse('geo:$lat,$lng?q=$lat,$lng');
+    final webFallback = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+
+    final launchedGeo = await _tryLaunchUri(geoUri);
+    if (launchedGeo) return;
+
+    final launchedWeb = await _tryLaunchUri(webFallback);
+    if (!launchedWeb && mounted) {
+      _showMapMessage(context, tr('maps_launch_failed'));
+    }
+  }
+
+  Future<bool> _tryLaunchUri(Uri uri) async {
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        return true;
+      }
+    } catch (_) {
+      return false;
+    }
+    return false;
+  }
+
+  void _showMapMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _showGeofencePopup({required String title, required String message}) async {
+    if (!mounted || _isGeofencePopupVisible) return;
+    _isGeofencePopupVisible = true;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    _isGeofencePopupVisible = false;
   }
 }

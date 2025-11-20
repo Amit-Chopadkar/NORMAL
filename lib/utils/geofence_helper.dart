@@ -14,6 +14,7 @@ class GeofenceHelper {
         radius: (z['radius'] as num).toDouble(),
         fillColor: color.withValues(alpha: 0.08),
         strokeColor: color.withValues(alpha: 0.6),
+        strokeWidth: 3,
       );
     }).toSet();
   }

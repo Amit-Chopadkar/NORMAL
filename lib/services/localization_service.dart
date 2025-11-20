@@ -24,6 +24,11 @@ class LocalizationService {
       'time': 'Time',
       'crowd_density': 'Crowd Density',
       'weather': 'Weather',
+      'start_navigation': 'Start navigation',
+      'open_in_google_maps': 'Open in Google Maps',
+      'location_unavailable': 'Current location not available yet',
+      'navigation_launch_failed': 'Unable to start navigation app',
+      'maps_launch_failed': 'Unable to open Google Maps',
       'your_location_nearby_zones': 'Your Location & Nearby Zones',
       
       // Profile
@@ -139,6 +144,11 @@ class LocalizationService {
       'time': 'समय',
       'crowd_density': 'भीड़ घनत्व',
       'weather': 'मौसम',
+      'start_navigation': 'नेविगेशन शुरू करें',
+      'open_in_google_maps': 'Google मानचित्र में खोलें',
+      'location_unavailable': 'वर्तमान स्थान अभी उपलब्ध नहीं है',
+      'navigation_launch_failed': 'नेविगेशन ऐप खोलने में असमर्थ',
+      'maps_launch_failed': 'Google मानचित्र खोलने में असमर्थ',
       'your_location_nearby_zones': 'आपका स्थान और पास के क्षेत्र',
       
       // Profile
@@ -254,6 +264,11 @@ class LocalizationService {
       'time': 'Hora',
       'crowd_density': 'Densidad de gente',
       'weather': 'Clima',
+      'start_navigation': 'Iniciar navegación',
+      'open_in_google_maps': 'Abrir en Google Maps',
+      'location_unavailable': 'Ubicación actual no disponible aún',
+      'navigation_launch_failed': 'No se puede abrir la app de navegación',
+      'maps_launch_failed': 'No se puede abrir Google Maps',
       'your_location_nearby_zones': 'Tu ubicación y zonas cercanas',
       
       // Profile

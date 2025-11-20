@@ -101,6 +101,20 @@ class IncidentService {
     }
   }
 
+  static Future<bool> deleteIncident(String incidentId) async {
+    try {
+      final box = Hive.box(boxName);
+      if (!box.containsKey(incidentId)) {
+        return false;
+      }
+      await box.delete(incidentId);
+      return true;
+    } catch (e) {
+      print('Error deleting incident: $e');
+      return false;
+    }
+  }
+
   // Generate E-FIR for missing person (automated)
   static Future<String> generateEFIR({
     required String personName,

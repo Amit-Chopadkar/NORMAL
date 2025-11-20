@@ -172,6 +172,20 @@ class _MyIncidentsScreenState extends State<MyIncidentsScreen> {
                             incident['description'] ?? 'N/A',
                             style: const TextStyle(fontSize: 12),
                           ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton.icon(
+                                onPressed: () => _confirmDeleteIncident(incident['id']),
+                                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                label: const Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
                           if (incident['emergencyResponse'] != null) ...[
                             const SizedBox(height: 16),
                             Container(
@@ -318,6 +332,44 @@ class _MyIncidentsScreenState extends State<MyIncidentsScreen> {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return dateTimeStr;
+    }
+  }
+
+  Future<void> _confirmDeleteIncident(String incidentId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Incident'),
+        content: const Text('Are you sure you want to delete this incident? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await IncidentService.deleteIncident(incidentId);
+      if (!mounted) return;
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Incident deleted')),
+        );
+        _refreshIncidents();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete incident')),
+        );
+      }
     }
   }
 }
