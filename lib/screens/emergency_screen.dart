@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'incident_report_screen.dart';
 import '../services/location_service.dart';
+import '../services/localization_service.dart';
 
 class EmergencyScreen extends StatefulWidget {
   const EmergencyScreen({super.key});
@@ -74,9 +75,18 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: LocalizationService.languageNotifier,
+      builder: (context, language, _) {
+        return _buildEmergency();
+      },
+    );
+  }
+
+  Widget _buildEmergency() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Emergency'),
+        title: Text(tr('emergency')),
         centerTitle: true,
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
@@ -92,16 +102,16 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
               _buildSOSButton(),
               const SizedBox(height: 32),
               // Emergency Services
-              const Text(
-                'Emergency Contacts',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                tr('emergency_contacts_title'),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              _buildEmergencyContact('Police', '100', Colors.blue),
+              _buildEmergencyContact(tr('police'), '100', Colors.blue),
               const SizedBox(height: 12),
-              _buildEmergencyContact('Ambulance', '102', Colors.green),
+              _buildEmergencyContact(tr('ambulance'), '102', Colors.green),
               const SizedBox(height: 12),
-              _buildEmergencyContact('Fire Department', '101', Colors.orange),
+              _buildEmergencyContact(tr('fire'), '101', Colors.orange),
               const SizedBox(height: 12),
               _buildEmergencyContact('Local Police Station', '+91 2560 234567', Colors.indigo),
               const SizedBox(height: 32),
@@ -109,7 +119,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
               ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.location_on),
-                label: const Text('Share My Location'),
+                label: Text(tr('share_location')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   minimumSize: const Size(double.infinity, 48),
@@ -122,7 +132,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                   _makeEmergencyCall('100');
                 },
                 icon: const Icon(Icons.phone),
-                label: const Text('Call Police'),
+                label: Text(tr('call_police')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   minimumSize: const Size(double.infinity, 48),
@@ -140,7 +150,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                   );
                 },
                 icon: const Icon(Icons.report_problem),
-                label: const Text('Report Incident'),
+                label: Text(tr('report_incident')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   minimumSize: const Size(double.infinity, 48),
@@ -184,7 +194,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                _sosPressed ? 'ALERT SENT' : 'SOS',
+                _sosPressed ? tr('alert_sent') : tr('sos'),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 32,
@@ -192,7 +202,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                 ),
               ),
               Text(
-                _sosPressed ? 'Emergency Services Notified' : 'Press to Send Alert',
+                _sosPressed
+                    ? tr('emergency_services_notified')
+                    : tr('press_to_send_alert'),
                 style: const TextStyle(color: Colors.white70, fontSize: 12),
               ),
             ],
@@ -257,14 +269,17 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('SOS Alert', style: TextStyle(color: Colors.red)),
-          content: const Text(
-            'Are you in immediate danger? This will send an alert to emergency services and your emergency contacts with your current location.',
+          title: Text(
+            tr('sos_alert'),
+            style: const TextStyle(color: Colors.red),
+          ),
+          content: Text(
+            tr('sos_alert_message'),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(tr('cancel')),
             ),
             ElevatedButton(
               onPressed: () {
@@ -283,7 +298,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                 });
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Send SOS Alert'),
+              child: Text(tr('send_sos_alert')),
             ),
           ],
         );

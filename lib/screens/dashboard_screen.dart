@@ -12,6 +12,7 @@ import '../services/active_alert_service.dart';
 import '../services/incident_service.dart';
 import '../services/location_service.dart';
 import '../services/safety_score_service.dart';
+import '../services/localization_service.dart';
 import '../utils/constants.dart';
 import '../utils/geofence_helper.dart';
 import '../services/weather_service.dart';
@@ -370,6 +371,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: LocalizationService.languageNotifier,
+      builder: (context, language, _) {
+        return _buildDashboard(context);
+      },
+    );
+  }
+
+  Widget _buildDashboard(BuildContext context) {
     final zoneStatus = _zoneStatusLabel();
     final timeLabel = _timeLabel();
     final crowdDensity = _crowdDensityLabel();
@@ -468,9 +478,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           Icon(Icons.shield_outlined, color: Colors.grey[800]),
                           const SizedBox(width: 8),
-                          const Text(
-                            'Tourist Safety Score',
-                            style: TextStyle(
+                          Text(
+                            tr('tourist_safety_score'),
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -490,9 +500,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 color: Colors.green[600],
                               ),
                             ),
-                            const Text(
-                              'Out of 100',
-                              style: TextStyle(
+                            Text(
+                              tr('out_of_100'),
+                              style: const TextStyle(
                                 color: Colors.grey,
                                 fontSize: 12,
                               ),
@@ -501,13 +511,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildSafetyItem('Current Zone', zoneStatus, _zoneStatusColor(zoneStatus)),
+                      _buildSafetyItem(tr('current_zone'), zoneStatus, _zoneStatusColor(zoneStatus)),
                       const SizedBox(height: 12),
-                      _buildSafetyItem('Time', timeLabel, Colors.grey),
+                      _buildSafetyItem(tr('time'), timeLabel, Colors.grey),
                       const SizedBox(height: 12),
-                      _buildSafetyItem('Crowd Density', crowdDensity, _crowdDensityColor(crowdDensity)),
+                      _buildSafetyItem(tr('crowd_density'), crowdDensity, _crowdDensityColor(crowdDensity)),
                       const SizedBox(height: 12),
-                      _buildSafetyItem('Weather', weatherLabel, Colors.grey),
+                      _buildSafetyItem(tr('weather'), weatherLabel, Colors.grey),
                     ],
                   ),
                 ),
@@ -524,13 +534,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.location_on_outlined, color: Colors.grey),
-                          SizedBox(width: 8),
+                          const Icon(Icons.location_on_outlined, color: Colors.grey),
+                          const SizedBox(width: 8),
                           Text(
-                            'Your Location & Nearby Zones',
-                            style: TextStyle(
+                            tr('your_location_nearby_zones'),
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -577,9 +587,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Current Location',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                Text(
+                                  tr('current_location'),
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 Text(
                                   _currentAddress ?? 'Detecting address...',
@@ -623,13 +633,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Row(
+                          Row(
                             children: [
-                              Icon(Icons.warning_amber_rounded, color: Colors.black87),
-                              SizedBox(width: 8),
+                              const Icon(Icons.warning_amber_rounded, color: Colors.black87),
+                              const SizedBox(width: 8),
                               Text(
-                                'Active Alerts',
-                                style: TextStyle(
+                                tr('active_alerts'),
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -653,9 +663,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       if (_alertsLoading)
                         const Center(child: CircularProgressIndicator())
                       else if (_activeAlerts.isEmpty && _weatherAlert == null)
-                        const Text(
-                          'No active alerts right now. Stay safe!',
-                          style: TextStyle(color: Colors.grey),
+                        Text(
+                          tr('no_data'),
+                          style: const TextStyle(color: Colors.grey),
                         )
                       else
                         Column(

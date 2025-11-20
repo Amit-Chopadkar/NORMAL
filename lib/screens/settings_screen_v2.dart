@@ -111,9 +111,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 const SizedBox(height: 24), // Top padding
                 // Header
-                const Text(
-                  'Settings',
-                  style: TextStyle(
+                Text(
+                  tr('settings'),
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -121,7 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 16),
 
                 // Safety & Monitoring
-                _buildSectionHeader('Safety & Monitoring'),
+                _buildSectionHeader('safety_monitoring'),
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
@@ -133,7 +133,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       SettingTile(
                         icon: Icons.location_on,
                         iconColor: Colors.green,
-                        title: 'Location Tracking',
+                        title: tr('location_tracking'),
                         value: _locationTracking,
                         onChanged: (value) =>
                             setState(() => _locationTracking = value),
@@ -141,7 +141,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       SettingTile(
                         icon: Icons.notifications,
                         iconColor: Colors.red,
-                        title: 'Emergency Alerts',
+                        title: tr('notifications'),
                         value: _emergencyAlerts,
                         onChanged: (value) =>
                             setState(() => _emergencyAlerts = value),
@@ -161,7 +161,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 24),
 
                 // Incident Reporting
-                _buildSectionHeader('Incident Tracking'),
+                _buildSectionHeader('incident_tracking'),
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
@@ -170,11 +170,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   child: ListTile(
                     leading: Icon(Icons.report_problem, color: Colors.red[700]),
-                    title: const Text(
-                      'My Incident Reports',
-                      style: TextStyle(fontWeight: FontWeight.w500),
+                    title: Text(
+                      tr('my_incident_reports'),
+                      style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
-                    subtitle: const Text('View and track your reports'),
+                    subtitle: Text(tr('view_and_track_reports')),
                     trailing: const Icon(Icons.arrow_forward),
                     onTap: () {
                       Navigator.push(
@@ -190,7 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 24),
 
                 // Family & Contacts
-                _buildSectionHeader('Family & Contacts'),
+                _buildSectionHeader('family_contacts'),
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
@@ -202,7 +202,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       SettingTile(
                         icon: Icons.person,
                         iconColor: Colors.blue,
-                        title: 'Family Tracking',
+                        title: tr('family_tracking'),
                         value: _familyTracking,
                         onChanged: (value) async {
                           setState(() => _familyTracking = value);
@@ -216,9 +216,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       ListTile(
                         leading: Icon(Icons.phone, color: Colors.grey[600]),
-                        title: const Text(
-                          'Emergency Contacts',
-                          style: TextStyle(fontWeight: FontWeight.w500),
+                        title: Text(
+                          tr('emergency_contacts'),
+                          style: const TextStyle(fontWeight: FontWeight.w500),
                         ),
                         trailing: IconButton(
                           onPressed: _familyTracking
@@ -236,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       SettingTile(
                         icon: Icons.share,
                         iconColor: Colors.purple,
-                        title: 'Share Location with Family',
+                        title: tr('share_location_family'),
                         value: _shareLocation,
                         onChanged: (value) async {
                           if (!_familyTracking && value) {
@@ -260,7 +260,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 24),
 
                 // Language & Region
-                _buildSectionHeader('Language & Region'),
+                _buildSectionHeader('language_region'),
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
@@ -271,9 +271,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       ListTile(
                         leading: Icon(Icons.language, color: Colors.green),
-                        title: const Text(
-                          'Language',
-                          style: TextStyle(fontWeight: FontWeight.w500),
+                        title: Text(
+                          tr('language'),
+                          style: const TextStyle(fontWeight: FontWeight.w500),
                         ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -310,34 +310,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            title: const Text('Logout'),
-                            content: const Text(
-                                'Are you sure you want to logout?'),
+                            title: Text(tr('logout')),
+                            content: Text(tr('logout_confirm_message')),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
+                                child: Text(tr('cancel')),
                               ),
                               TextButton(
                                 onPressed: () {
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Logged out successfully'),
+                                    SnackBar(
+                                      content:
+                                          Text(tr('logged_out_successfully')),
                                     ),
                                   );
                                 },
-                                child: const Text('Logout',
-                                    style: TextStyle(color: Colors.red)),
+                                child: Text(
+                                  tr('logout'),
+                                  style: const TextStyle(color: Colors.red),
+                                ),
                               ),
                             ],
                           );
                         },
                       );
                     },
-                    child: const Text(
-                      'Log Out',
-                      style: TextStyle(
+                    child: Text(
+                      tr('logout'),
+                      style: const TextStyle(
                         color: Colors.red,
                         fontWeight: FontWeight.w500,
                       ),
@@ -357,11 +359,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String titleKey) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
-        title,
+        tr(titleKey),
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,

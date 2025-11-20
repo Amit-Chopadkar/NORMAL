@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/localization_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -10,9 +11,18 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: LocalizationService.languageNotifier,
+      builder: (context, language, _) {
+        return _buildProfile();
+      },
+    );
+  }
+
+  Widget _buildProfile() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text(tr('profile')),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.grey,
@@ -40,13 +50,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 24),
               // Profile Info Cards
-              _buildInfoCard('Email', 'rajesh@example.com'),
+              _buildInfoCard(tr('email'), 'rajesh@example.com'),
               const SizedBox(height: 12),
-              _buildInfoCard('Phone', '+91 98765 43210'),
+              _buildInfoCard(tr('phone'), '+91 98765 43210'),
               const SizedBox(height: 12),
-              _buildInfoCard('Country', 'India'),
+              _buildInfoCard(tr('country'), 'India'),
               const SizedBox(height: 12),
-              _buildInfoCard('Member Since', 'January 2025'),
+              _buildInfoCard(tr('member_since'), 'January 2025'),
               const SizedBox(height: 24),
               // Emergency Contacts
               Container(
@@ -59,9 +69,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Emergency Contacts',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    Text(
+                      tr('emergency_contacts'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const SizedBox(height: 12),
                     _buildContactItem('Mother', '+91 98765 43211'),

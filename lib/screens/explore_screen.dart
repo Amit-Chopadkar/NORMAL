@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/place_model.dart';
 import '../widgets/place_card.dart';
 import '../widgets/filter_chip.dart';
+import '../services/localization_service.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -12,11 +13,11 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   final List<PlaceCategory> _categories = [
-    PlaceCategory(id: 'all', name: 'All', isSelected: true),
-    PlaceCategory(id: 'famous', name: 'Famous', isSelected: false),
-    PlaceCategory(id: 'food', name: 'Food', isSelected: false),
-    PlaceCategory(id: 'adventure', name: 'Adventure', isSelected: false),
-    PlaceCategory(id: 'hidden-gem', name: 'Hidden Gems', isSelected: false),
+    PlaceCategory(id: 'all', name: tr('all'), isSelected: true),
+    PlaceCategory(id: 'famous', name: tr('famous'), isSelected: false),
+    PlaceCategory(id: 'food', name: tr('food'), isSelected: false),
+    PlaceCategory(id: 'adventure', name: tr('adventure'), isSelected: false),
+    PlaceCategory(id: 'hidden-gem', name: tr('hidden_gems'), isSelected: false),
   ];
 
   final List<Place> _places = [
@@ -95,6 +96,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: LocalizationService.languageNotifier,
+      builder: (context, language, _) {
+        return _buildExplore();
+      },
+    );
+  }
+
+  Widget _buildExplore() {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: Stack(
@@ -110,7 +120,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Explore Nashik',
+                      tr('explore_nashik'),
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

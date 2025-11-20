@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:tourist_safety_hub/screens/splash_screen.dart';
-import 'package:tourist_safety_hub/screens/dashboard_screen.dart';
+import 'package:tourguard/screens/splash_screen.dart';
+import 'package:tourguard/screens/dashboard_screen.dart';
 // geofence_demo is available in the project but not set as the home screen.
-import 'package:tourist_safety_hub/screens/profile_screen.dart';
-import 'package:tourist_safety_hub/screens/explore_screen.dart';
-import 'package:tourist_safety_hub/screens/emergency_screen.dart';
-import 'package:tourist_safety_hub/screens/settings_screen_v2.dart';
-import 'package:tourist_safety_hub/screens/incident_report_screen.dart';
-import 'package:tourist_safety_hub/services/notification_service.dart';
-import 'package:tourist_safety_hub/services/api_service.dart';
-import 'package:tourist_safety_hub/services/chat_service.dart';
-import 'package:tourist_safety_hub/services/incident_service.dart';
-import 'package:tourist_safety_hub/services/localization_service.dart';
+import 'package:tourguard/screens/profile_screen.dart';
+import 'package:tourguard/screens/explore_screen.dart';
+import 'package:tourguard/screens/emergency_screen.dart';
+import 'package:tourguard/screens/settings_screen_v2.dart';
+import 'package:tourguard/services/notification_service.dart';
+import 'package:tourguard/services/api_service.dart';
+import 'package:tourguard/services/chat_service.dart';
+import 'package:tourguard/services/incident_service.dart';
+import 'package:tourguard/services/localization_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,30 +30,37 @@ class TouristSafetyHub extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Tourist Safety Hub',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Roboto',
-        useMaterial3: true,
-        scaffoldBackgroundColor: Colors.grey[100],
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.grey[800],
-          elevation: 0,
-        ),
-        cardTheme: CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+    // Rebuild the MaterialApp whenever the language changes so that any
+    // widgets using tr() pick up the new translations.
+    return ValueListenableBuilder<String>(
+      valueListenable: LocalizationService.languageNotifier,
+      builder: (context, languageCode, _) {
+        return MaterialApp(
+          title: 'TourGuard',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            fontFamily: 'Roboto',
+            useMaterial3: true,
+            scaffoldBackgroundColor: Colors.grey[100],
+            appBarTheme: AppBarTheme(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.grey[800],
+              elevation: 0,
+            ),
+            cardTheme: CardThemeData(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
           ),
-        ),
-      ),
-      home: const SplashScreen(),
-      routes: {
-        '/home': (context) => const MainNavigationScreen(),
+          home: const SplashScreen(),
+          routes: {
+            '/home': (context) => const MainNavigationScreen(),
+          },
+          debugShowCheckedModeBanner: false,
+        );
       },
-      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -85,27 +91,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.home),
-            label: 'Dashboard',
+            label: tr('dashboard'),
             backgroundColor: Colors.blue[800],
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.person_outline),
-            label: 'Profile',
+            label: tr('profile'),
             backgroundColor: Colors.blue[800],
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.explore_outlined),
-            label: 'Explore',
+            label: tr('explore'),
             backgroundColor: Colors.blue[800],
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.warning_amber_rounded),
-            label: 'Emergency',
+            label: tr('emergency'),
             backgroundColor: Colors.blue[800],
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.settings_outlined),
-            label: 'Settings',
+            label: tr('settings'),
             backgroundColor: Colors.blue[800],
           ),
         ],

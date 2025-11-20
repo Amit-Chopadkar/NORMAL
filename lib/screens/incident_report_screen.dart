@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 import '../services/incident_service.dart';
 import '../services/location_service.dart';
 import '../services/api_service.dart';
+import '../services/localization_service.dart';
 
 class IncidentReportScreen extends StatefulWidget {
   const IncidentReportScreen({Key? key}) : super(key: key);
@@ -138,17 +139,17 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
               barrierDismissible: false,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: const Text('Incident Reported'),
+                  title: Text(tr('incident_reported')),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.check_circle,
                           color: Colors.green, size: 48),
                       const SizedBox(height: 16),
-                      Text('Incident ID: $incidentId'),
+                      Text('${tr('incident_id')}: $incidentId'),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Your incident has been reported and authorities have been notified.',
+                      Text(
+                        tr('incident_success_message'),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -159,7 +160,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                         Navigator.pop(context);
                         Navigator.pop(context);
                       },
-                      child: const Text('OK'),
+                      child: Text(tr('ok')),
                     ),
                   ],
                 );
@@ -205,7 +206,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Report Incident'),
+        title: Text(tr('incident_report')),
         backgroundColor: Colors.red[700],
         elevation: 0,
       ),
@@ -218,14 +219,14 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
             children: [
               // Incident Title
               Text(
-                'Incident Title',
+                tr('incident_title'),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _titleController,
                 decoration: InputDecoration(
-                  hintText: 'Brief title of the incident',
+                  hintText: tr('incident_title_hint'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -242,7 +243,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
 
               // Category Selection
               Text(
-                'Category',
+                tr('category'),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -274,7 +275,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
 
               // Urgency Level
               Text(
-                'Urgency Level',
+                tr('urgency_level'),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -306,14 +307,14 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
 
               // Description
               Text(
-                'Description',
+                tr('description'),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
-                  hintText: 'Provide detailed description of the incident',
+                  hintText: tr('description_hint'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -334,7 +335,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
 
               // Location
               Text(
-                'Location',
+                tr('location'),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -390,7 +391,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                         }
                       },
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Update Location'),
+                      label: Text(tr('update_location')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[600],
                       ),
@@ -416,7 +417,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                                 AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
-                      : const Text('Submit Report'),
+                      : Text(tr('submit_report')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red[700],
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -436,9 +437,9 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                   border: Border.all(color: Colors.blue[200]!),
                 ),
                 padding: const EdgeInsets.all(12),
-                child: const Text(
-                  '📢 Your report will be immediately sent to local authorities. They may contact you for additional information. Keep your incident ID for reference.',
-                  style: TextStyle(fontSize: 12),
+                child: Text(
+                  tr('incident_info_box'),
+                  style: const TextStyle(fontSize: 12),
                 ),
               ),
             ],

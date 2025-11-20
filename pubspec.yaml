@@ -1,5 +1,5 @@
-name: tourist_safety_hub
-description: A Flutter application for tourist safety monitoring
+name: tourguard
+description: A Flutter application for tourist safety monitoring with real-time alerts, geofencing, and multilingual support.
 
 publish_to: 'none'
 
@@ -55,5 +55,5 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: assets/images/logo.png
+  image_path: assets/images/icon.png
   adaptive_icon_background: '#FFFFFF'
