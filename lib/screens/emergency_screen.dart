@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'incident_report_screen.dart';
 import '../services/location_service.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +14,7 @@ import '../presentation/providers/auth_provider.dart';
 import '../services/localization_service.dart';
 import '../services/api_service.dart';
 import '../services/api_environment.dart';
+import '../services/backend_service.dart';
 
 class EmergencyScreen extends StatefulWidget {
   const EmergencyScreen({super.key});
@@ -19,8 +25,144 @@ class EmergencyScreen extends StatefulWidget {
 
 class _EmergencyScreenState extends State<EmergencyScreen> {
   bool _sosPressed = false;
+  late final stt.SpeechToText _speechToText;
+  bool _speechEnabled = false;
+  bool _isListeningForHelp = false;
+  DateTime? _lastVoiceTrigger;
+
+  // Map related
+  GoogleMapController? _mapController;
+  LatLng? _incidentLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _speechToText = stt.SpeechToText();
+    _initVoiceRecognition();
+  }
+
+  @override
+  void dispose() {
+    _speechToText.stop();
+    super.dispose();
+  }
+
+  Future<void> _initVoiceRecognition() async {
+    try {
+      final hasSpeech = await _speechToText.initialize(
+        onError: (errorNotification) => _handleSpeechError(errorNotification.errorMsg),
+        onStatus: _handleSpeechStatus,
+      );
+      if (!mounted) return;
+      setState(() {
+        _speechEnabled = hasSpeech;
+      });
+      if (hasSpeech) {
+        _startListeningForHelp();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _speechEnabled = false;
+      });
+    }
+  }
+
+  Future<void> _startListeningForHelp() async {
+    if (!_speechEnabled || _isListeningForHelp) return;
+    await _speechToText.listen(
+      onResult: _handleSpeechResult,
+      pauseFor: const Duration(seconds: 10),
+      listenOptions: stt.SpeechListenOptions(
+        partialResults: true,
+        listenMode: stt.ListenMode.dictation,
+      ),
+    );
+    if (!mounted) return;
+    setState(() {
+      _isListeningForHelp = _speechToText.isListening;
+    });
+  }
+
+  void _handleSpeechResult(SpeechRecognitionResult result) {
+    try {
+      final recognized = result.recognizedWords.trim().toLowerCase();
+      if (recognized.isEmpty) {
+        return;
+      }
+
+      const keywords = ['help', 'please help', 'i need help', 'sos'];
+      final matchedKeyword =
+          keywords.firstWhere((kw) => recognized.contains(kw), orElse: () => '');
+      final now = DateTime.now();
+      final recentlyTriggered = _lastVoiceTrigger != null &&
+          now.difference(_lastVoiceTrigger!) < const Duration(seconds: 4);
+
+      print('[SOS] Recognized "$recognized" | keyword: $matchedKeyword | confidence: ${result.confidence}');
+
+      if (matchedKeyword.isEmpty || recentlyTriggered) {
+        return;
+      }
+
+      if (result.hasConfidenceRating && result.confidence < 0.4) {
+        print('[SOS] Ignoring low-confidence match');
+        return;
+      }
+
+      _lastVoiceTrigger = now;
+      _handleVoiceTriggeredSOS();
+    } catch (e) {
+      print('[SOS] Error handling speech result: $e');
+    }
+  }
+
+  void _handleSpeechError(String message) {
+    if (!mounted) return;
+    setState(() {
+      _isListeningForHelp = false;
+    });
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        _startListeningForHelp();
+      }
+    });
+  }
+
+  void _handleSpeechStatus(String status) {
+    if (!mounted) return;
+    if (status == 'done' || status == 'notListening') {
+      setState(() {
+        _isListeningForHelp = false;
+      });
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted) {
+          _startListeningForHelp();
+        }
+      });
+    }
+  }
+
+  void _handleVoiceTriggeredSOS() {
+    if (!mounted) return;
+    print('[SOS] Voice trigger detected, calling _sendSOSAlert');
+    _sendSOSAlert();
+    setState(() {
+      print('[SOS] setState: _sosPressed = true');
+      _sosPressed = true;
+    });
+    // Reset button after 5 seconds
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          print('[SOS] setState: _sosPressed = false');
+          _sosPressed = false;
+        });
+      }
+    });
+  }
 
   Future<void> _sendSOSAlert() async {
+    print('[SOS] _sendSOSAlert called');
     // Get Emergency Contacts first (fast, no network)
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final contacts = authProvider.emergencyContacts;
@@ -65,11 +207,18 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     // Build message with available location
     String locationUrl = 'Location unavailable';
     double? lat, lng;
-    
     if (position != null) {
       lat = position.latitude;
       lng = position.longitude;
       locationUrl = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+      // Set incident location for geofence
+      if (lat != null && lng != null) {
+        final double latValue = lat;
+        final double lngValue = lng;
+        setState(() {
+          _incidentLocation = LatLng(latValue, lngValue);
+        });
+      }
     }
 
     final phoneNumbers = contacts.map((e) => e['phone']).join(',');
@@ -79,22 +228,12 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     
     // OPEN SMS APP IMMEDIATELY (don't wait for backend)
     try {
-      final Uri smsUri = Uri(
-        scheme: 'sms',
-        path: phoneNumbers,
-        queryParameters: <String, String>{
-          'body': message,
-        },
-      );
-
-      if (await canLaunchUrl(smsUri)) {
-        await launchUrl(smsUri, mode: LaunchMode.externalApplication);
-      } else {
-        await launchUrl(Uri.parse('sms:$phoneNumbers?body=${Uri.encodeComponent(message)}'), 
-            mode: LaunchMode.externalApplication);
-      }
+      final smsUri = Uri.parse('sms:$phoneNumbers?body=${Uri.encodeComponent(message)}');
+      print('[SOS] Sending SMS with URI: $smsUri');
+      await launchUrl(smsUri, mode: LaunchMode.externalApplication);
+      print('[SOS] SMS intent launched');
     } catch (e) {
-      print('Error opening SMS app: $e');
+      print('[SOS] Error opening SMS app: $e');
     }
 
     // Run backend operations in background (non-blocking)
@@ -127,34 +266,60 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final userId = authProvider.user?.id ?? 'unknown';
       
-      // Send SMS via backend API (fire and forget - no await)
+      // Send alert to new backend API (fire and forget - no await)
       if (latitude != null && longitude != null) {
-        ApiService.sendSOS(
-          latitude: latitude,
-          longitude: longitude,
-          emergencyContacts: contacts,
-          userName: userName,
-        ).timeout(const Duration(seconds: 5)).catchError((error) {
-          print('Backend SMS error (non-critical): $error');
-        });
+        // Check if user is authenticated with new backend
+        final isAuthenticated = await BackendService.isAuthenticated();
+        if (isAuthenticated) {
+          unawaited(() async {
+            try {
+              await BackendService.createAlert(
+                alertType: 'sos',
+                lat: latitude,
+                lng: longitude,
+                message: 'SOS Alert from ${userName ?? "User"}',
+              ).timeout(const Duration(seconds: 5));
+            } catch (error) {
+              print('New backend alert error (non-critical): $error');
+            }
+          }());
+        }
+        
+        // Also send to old backend (fire and forget - no await)
+        unawaited(() async {
+          try {
+            await ApiService.sendSOS(
+              latitude: latitude,
+              longitude: longitude,
+              emergencyContacts: contacts,
+              userName: userName,
+            ).timeout(const Duration(seconds: 5));
+          } catch (error) {
+            print('Backend SMS error (non-critical): $error');
+          }
+        }());
       }
 
       // Send to Firestore (fire and forget - no await)
-      FirebaseFirestore.instance.collection('alerts').add({
-        'alert_type': 'SOS',
-        if (latitude != null && longitude != null) 'location': {
-          'latitude': latitude,
-          'longitude': longitude,
-          'timestamp': DateTime.now(),
-          'type': 'SOS',
-        },
-        'user_id': userId,
-        'timestamp': DateTime.now(),
-        'status': 'active',
-        'contacts_notified': contacts.length,
-      }).timeout(const Duration(seconds: 3)).catchError((error) {
-        print('Firestore error (non-critical): $error');
-      });
+      unawaited(() async {
+        try {
+          await FirebaseFirestore.instance.collection('alerts').add({
+            'alert_type': 'SOS',
+            if (latitude != null && longitude != null) 'location': {
+              'latitude': latitude,
+              'longitude': longitude,
+              'timestamp': DateTime.now(),
+              'type': 'SOS',
+            },
+            'user_id': userId,
+            'timestamp': DateTime.now(),
+            'status': 'active',
+            'contacts_notified': contacts.length,
+          }).timeout(const Duration(seconds: 3));
+        } catch (error) {
+          print('Firestore error (non-critical): $error');
+        }
+      }());
     } catch (e) {
       // All background errors are non-critical
       print('Background SOS task error: $e');
@@ -191,6 +356,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                 _buildHeader(),
                 const SizedBox(height: 20),
                 _buildSOSButton(),
+                const SizedBox(height: 12),
+                _buildVoiceStatusBanner(),
                 const SizedBox(height: 30),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -230,12 +397,14 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
                 colors: [
-                  Color(0xFF7B61FF), // Purple
-                  Color(0xFF6C5DD3),
+                  Color(0xFF2196F3), // Blue
+                  Color(0x801976D2), // Darker Blue with fade (50% opacity)
+                  Color(0x001976D2), // Fully transparent for fade effect
                 ],
+                stops: [0.0, 0.7, 1.0],
               ),
             ),
             child: SafeArea(
@@ -324,30 +493,72 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     );
   }
 
+  Widget _buildVoiceStatusBanner() {
+    Color statusColor;
+    IconData icon;
+    String label;
+
+    if (!_speechEnabled) {
+      statusColor = Colors.grey;
+      icon = Icons.mic_off;
+      label = tr('voice_control_unavailable');
+    } else if (_isListeningForHelp) {
+      statusColor = Colors.green;
+      icon = Icons.hearing;
+      label = tr('voice_control_listening');
+    } else {
+      statusColor = Colors.orange;
+      icon = Icons.mic;
+      label = tr('voice_control_ready');
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: statusColor, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: statusColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildContactsGrid() {
     final contacts = [
       {
         'name': tr('police'),
         'icon': Icons.local_police_outlined,
-        'color': const Color(0xFF7B61FF),
+        'color': const Color(0xFF2196F3), // Blue
         'number': '100'
       },
       {
-        'name': tr('fire'), // Was 'Firefighters' in design, but tr('fire') in original
+        'name': tr('fire'),
         'icon': Icons.local_fire_department_outlined,
-        'color': const Color(0xFF7B61FF),
+        'color': const Color(0xFF2196F3), // Blue
         'number': '101'
       },
       {
         'name': tr('ambulance'),
         'icon': Icons.medical_services_outlined,
-        'color': const Color(0xFF7B61FF),
+        'color': const Color(0xFF2196F3), // Blue
         'number': '102'
       },
       {
-        'name': 'Local Police', // Original had 'Local Police Station' hardcoded too
+        'name': 'Local Police',
         'icon': Icons.local_taxi_outlined,
-        'color': const Color(0xFF7B61FF),
+        'color': const Color(0xFF2196F3), // Blue
         'number': '+91 2560 234567'
       },
     ];
@@ -414,13 +625,44 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   }
 
   Widget _buildActionButtons() {
+    TextEditingController _vehicleController = TextEditingController();
     return Column(
       children: [
-        _buildActionButton(
-          tr('call_police'),
-          Icons.phone_in_talk,
-          const Color(0xFFEF4444),
-          () => _makeEmergencyCall('100'),
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.directions_car, color: Color(0xFFEF4444)),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: TextField(
+                  controller: _vehicleController,
+                  decoration: InputDecoration(
+                    labelText: 'Enter your vehicle number',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 15),
         _buildActionButton(
@@ -436,15 +678,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             );
           },
         ),
-        const SizedBox(height: 15),
-        _buildActionButton(
-          tr('share_location'),
-          Icons.location_on_outlined,
-          const Color(0xFF7B61FF),
-          () {
-            // Existing logic for location sharing
-          },
-        ),
+        // ...existing code...
       ],
     );
   }
@@ -490,7 +724,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     );
   }
 
-  void _showSOSConfirmDialog() {
+  void _showSOSConfirmDialog({bool triggeredByVoice = false}) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -501,7 +735,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             style: const TextStyle(color: Colors.red),
           ),
           content: Text(
-            tr('sos_alert_message'),
+            triggeredByVoice
+                ? tr('voice_sos_alert_message')
+                : tr('sos_alert_message'),
           ),
           actions: [
             TextButton(

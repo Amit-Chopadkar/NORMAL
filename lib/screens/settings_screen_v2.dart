@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/contact_model.dart';
-import '../widgets/setting_tile.dart';
-import '../services/localization_service.dart';
-import '../services/family_tracking_service.dart';
 import 'package:hive/hive.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../models/contact_model.dart';
+import '../services/family_tracking_service.dart';
+import '../services/localization_service.dart';
+import '../services/location_service.dart';
+import '../widgets/setting_tile.dart';
 import 'my_incidents_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -81,6 +83,81 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final box = Hive.box('userBox');
     final list = _emergencyContacts.map((c) => {'id': c.id, 'name': c.name, 'phone': c.phone}).toList();
     box.put('emergencyContacts', list);
+  }
+
+  Future<void> _handleFamilyTrackingToggle(bool value) async {
+    if (!value) {
+      setState(() {
+        _familyTracking = false;
+        _shareLocation = false;
+      });
+      await FamilyTrackingService.stop();
+      return;
+    }
+
+    setState(() => _familyTracking = true);
+
+    if (_emergencyContacts.isEmpty) {
+      setState(() => _showContactModal = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Add an emergency contact to share updates with your family')),
+      );
+      return;
+    }
+
+    if (_shareLocation) {
+      await FamilyTrackingService.start();
+      await _sendCurrentLocationToFamily();
+    }
+  }
+
+  Future<void> _sendCurrentLocationToFamily() async {
+    final phoneNumbers = _emergencyContacts
+        .map((c) => c.phone.trim())
+        .where((phone) => phone.isNotEmpty)
+        .join(',');
+
+    if (phoneNumbers.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No valid phone numbers found for your family contacts')),
+      );
+      return;
+    }
+
+    try {
+      final position = await LocationService.getCurrentLocation();
+      final lat = position.latitude;
+      final lng = position.longitude;
+      final mapsUrl = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+      final message =
+          'Family Tracking enabled.\nCurrent location: $mapsUrl\nCoordinates: $lat, $lng\nTime: ${DateTime.now().toLocal()}';
+      final smsUri = Uri.parse('sms:$phoneNumbers?body=${Uri.encodeComponent(message)}');
+      final launched = await launchUrl(smsUri, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        throw Exception('Could not open the SMS app');
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Shared your current location with family contacts')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to share location: $e')),
+      );
+    }
+  }
+
+  Future<bool> _ensureFamilyContactsAvailable() async {
+    if (_emergencyContacts.isNotEmpty) {
+      return true;
+    }
+    setState(() => _showContactModal = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Add at least one emergency contact to share your location')),
+    );
+    return false;
   }
 
   Future<void> _changeLanguage(String languageCode) async {
@@ -204,15 +281,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         iconColor: Colors.blue,
                         title: tr('family_tracking'),
                         value: _familyTracking,
-                        onChanged: (value) async {
-                          setState(() => _familyTracking = value);
-                          if (!_familyTracking) {
-                            await FamilyTrackingService.stop();
-                          } else {
-                            // start only if share location is enabled
-                            if (_shareLocation) await FamilyTrackingService.start();
-                          }
-                        },
+                        onChanged: (value) => _handleFamilyTrackingToggle(value),
                       ),
                       ListTile(
                         leading: Icon(Icons.phone, color: Colors.grey[600]),
@@ -239,15 +308,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: tr('share_location_family'),
                         value: _shareLocation,
                         onChanged: (value) async {
-                          if (!_familyTracking && value) {
-                            // require family tracking enabled
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enable Family Tracking first')));
-                            return;
-                          }
-                          setState(() => _shareLocation = value);
-                          if (_familyTracking && _shareLocation) {
+                          if (value) {
+                            if (!_familyTracking) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Enable Family Tracking first')),
+                              );
+                              return;
+                            }
+                            final hasContacts = await _ensureFamilyContactsAvailable();
+                            if (!hasContacts) {
+                              return;
+                            }
+                            setState(() => _shareLocation = true);
                             await FamilyTrackingService.start();
+                            await _sendCurrentLocationToFamily();
                           } else {
+                            setState(() => _shareLocation = false);
                             await FamilyTrackingService.stop();
                           }
                         },

@@ -70,6 +70,11 @@ class LocalizationService {
       'share_location': 'Share My Location',
       'call_police': 'Call Police',
       'report_incident': 'Report Incident',
+      'voice_control_listening': 'Listening for "HELP"...',
+      'voice_control_ready': 'Voice SOS ready',
+      'voice_control_unavailable': 'Voice SOS unavailable',
+      'voice_sos_alert_message':
+          'We heard you say "HELP". Would you like to trigger the SOS alert now?',
       
       // Incident Report
       'incident_report': 'Report Incident',

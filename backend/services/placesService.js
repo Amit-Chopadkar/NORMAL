@@ -5,7 +5,7 @@ const NodeCache = require('node-cache');
 const placesCache = new NodeCache({ stdTTL: 3600 });
 
 const GOOGLE_PLACES_API_KEY =
-  process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyAHFoPQPwCSaexzu3JFLb8eHcnSO2LMK5I';
+  process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyDtbyiNsjhAWH-7NJPT0xu_FJKRIi9YPzU';
 const BASE_URL = 'https://places.googleapis.com/v1/places:searchNearby';
 
 // Mock data for fallback/testing when no API key is present
@@ -86,7 +86,7 @@ async function fetchNearbyPlaces(lat, lng, radius = 50000, type = '') {
   }
 
   // If no API key, return mock data
-  if (!GOOGLE_PLACES_API_KEY || GOOGLE_PLACES_API_KEY === 'AIzaSyAHFoPQPwCSaexzu3JFLb8eHcnSO2LMK5I') {
+  if (!GOOGLE_PLACES_API_KEY || GOOGLE_PLACES_API_KEY === 'AIzaSyDtbyiNsjhAWH-7NJPT0xu_FJKRIi9YPzU') {
     console.log('No valid API key found, returning mock data');
     if (type && type !== 'all') {
       return MOCK_PLACES.filter(place => place.types.includes(type));

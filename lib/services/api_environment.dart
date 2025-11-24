@@ -9,8 +9,8 @@ class ApiEnvironment {
       String.fromEnvironment('PLACES_API_BASE_URL', defaultValue: '');
   static const String _googlePlacesOverride =
       String.fromEnvironment('GOOGLE_PLACES_API_KEY', defaultValue: '');
-  static const String _bundledFallbackGoogleKey =
-      'AIzaSyAHFoPQPwCSaexzu3JFLb8eHcnSO2LMK5I';
+      static const String _bundledFallbackGoogleKey =
+        'AIzaSyDtbyiNsjhAWH-7NJPT0xu_FJKRIi9YPzU';
 
   /// Resolve the backend base URL for the nearby places API.
   static String get placesBaseUrl {

@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app listens for the HELP voice command so we can trigger SOS alerts for you.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Speech recognition lets TourGuard detect when you say HELP and automatically send SOS alerts.</string>
 </dict>
 </plist>

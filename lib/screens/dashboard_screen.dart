@@ -22,6 +22,7 @@ import '../services/weather_service.dart';
 import '../widgets/chatbot_widget.dart';
 import 'package:provider/provider.dart';
 import '../presentation/providers/auth_provider.dart';
+import '../services/backend_service.dart';
 
 
 class DashboardScreen extends StatefulWidget {
@@ -44,6 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Position? _currentPosition;
   final Set<Marker> _markers = {};
   final Set<Circle> _circles = {};
+  LatLng? _lastIncidentLocation;
   bool _isGeofencePopupVisible = false;
   List<Map<String, dynamic>> _localIncidents = [];
   Map<String, dynamic>? _safetyScoreData;
@@ -62,12 +64,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _alertsLoading = false;
   bool _isFetchingAlerts = false;
   DateTime? _lastAlertUpdate;
+  // Civic Sense carousel assets and controller
+  final List<String> _civicImagePaths = [
+    'assets/civic_sense/civic1.png',
+    'assets/civic_sense/civic2.png',
+    'assets/civic_sense/civic3.png',
+  ];
+  late final ScrollController _civicScrollController;
+  int _civicIndex = 0;
+  Timer? _civicAutoScrollTimer;
 
   @override
   void initState() {
     super.initState();
     _initLocationAndData();
     _startGeofenceMonitor();
+    _civicScrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_civicImagePaths.isEmpty) return;
+      _civicAutoScrollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+        if (!mounted) return;
+        _civicIndex = (_civicIndex + 1) % _civicImagePaths.length;
+        final width = MediaQuery.of(context).size.width * 0.86;
+        final offset = _civicIndex * (width + 12);
+        if (_civicScrollController.hasClients) {
+          _civicScrollController.animateTo(
+            offset,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
+    });
   }
 
   // Monitor location and trigger notification on geofence enter
@@ -98,6 +126,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _currentPosition = pos;
     });
     _evaluateGeofenceStatus(pos);
+    
+    // Send location update to backend (non-blocking)
+    _sendLocationToBackend(pos);
+    
     // Reduce refresh frequency to avoid network bursts and main-thread work
     final shouldRefresh = _lastSafetyUpdate == null ||
         DateTime.now().difference(_lastSafetyUpdate!) >= const Duration(seconds: 60);
@@ -113,6 +145,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
         DateTime.now().difference(_lastAlertUpdate!) >= const Duration(minutes: 5);
     if (shouldRefreshAlerts) {
       _refreshActiveAlerts();
+    }
+  }
+
+  // Send location update to backend (non-blocking)
+  void _sendLocationToBackend(Position pos) async {
+    try {
+      final isAuthenticated = await BackendService.isAuthenticated();
+      if (isAuthenticated) {
+        // Send location update (fire and forget)
+        BackendService.updateLocation(
+          lat: pos.latitude,
+          lng: pos.longitude,
+        ).timeout(const Duration(seconds: 3)).catchError((error) {
+          debugPrint('Backend location update error (non-critical): $error');
+        });
+        
+        // Log activity (fire and forget)
+        BackendService.logActivity(
+          action: 'location_update',
+          metadata: {
+            'lat': pos.latitude,
+            'lng': pos.longitude,
+            'accuracy': pos.accuracy,
+          },
+        ).catchError((error) {
+          debugPrint('Backend activity log error (non-critical): $error');
+        });
+      }
+    } catch (e) {
+      // Non-critical error
+      debugPrint('Backend location update error: $e');
     }
   }
 
@@ -134,6 +197,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final zoneName = _zoneNameForId(id) ?? id;
         // Persist event to Hive
         _logGeofenceEvent(zoneId: id, zoneName: zoneName, event: 'enter', lat: pos.latitude, lng: pos.longitude);
+        // Check zone type and update safety score
+        String zoneType = '';
+        if (zoneName.toLowerCase().contains('red') || zoneName.toLowerCase().contains('danger')) {
+          zoneType = 'red';
+        } else if (zoneName.toLowerCase().contains('yellow') || zoneName.toLowerCase().contains('caution')) {
+          zoneType = 'yellow';
+        }
+        if (zoneType.isNotEmpty && _safetyScoreData != null && _safetyScoreData!['score'] is num) {
+          setState(() {
+            if (zoneType == 'red') {
+              _safetyScoreData!['score'] = ((_safetyScoreData!['score'] as num) - 40).clamp(0, 100);
+            } else if (zoneType == 'yellow') {
+              _safetyScoreData!['score'] = ((_safetyScoreData!['score'] as num) - 20).clamp(0, 100);
+            }
+          });
+        }
         // Send user notification
         await NotificationService.showAlertNotification(title: 'Entered Zone', body: 'You entered $zoneName', type: 'geofence_enter');
         // Show popup notification - ensure it's awaited and context is available
@@ -340,6 +419,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void dispose() {
     _positionSub?.cancel();
     _safetyRefreshTimer?.cancel();
+    _civicAutoScrollTimer?.cancel();
+    _civicScrollController.dispose();
     super.dispose();
   }
 
@@ -365,7 +446,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
             infoWindow: InfoWindow(title: inc['title'] ?? 'Incident', snippet: inc['category']),
             icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
           ));
+          // Store last incident location for geofence
+          _lastIncidentLocation = LatLng(lat, lng);
         }
+      }
+      // Add blue geofence circle if last incident exists
+      if (_lastIncidentLocation != null) {
+        _circles.add(
+          Circle(
+            circleId: const CircleId('incident_geofence'),
+            center: _lastIncidentLocation!,
+            radius: 50,
+            fillColor: Colors.blue.withOpacity(0.3),
+            strokeColor: Colors.blue,
+            strokeWidth: 2,
+          ),
+        );
       }
       setState(() {
         _localIncidents = incidents;
@@ -418,8 +514,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 const SizedBox(height: 24), // Top padding
                 Container(
-                  padding: const EdgeInsets.all(16),
-                  color: Colors.white,
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFF5F7FA), // AppColors.background
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(color: Colors.blue[50]!, width: 1.5),
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -430,31 +538,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           final id = user?.id ?? 'N/A';
                           return Row(
                             children: [
-                              CircleAvatar(
-                                radius: 24,
-                                backgroundColor: Colors.blue.withOpacity(0.2),
-                                child: Text(
-                                  name.isNotEmpty ? name[0].toUpperCase() : '?',
-                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[800]),
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.blue[800],
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.blue.withOpacity(0.15),
+                                      blurRadius: 8,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: CircleAvatar(
+                                  radius: 28,
+                                  backgroundColor: Colors.blue[800],
+                                  child: Text(
+                                    name.isNotEmpty ? name[0].toUpperCase() : '?',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 28,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 16),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     name,
                                     style: const TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey,
+                                      color: Colors.black,
+                                      letterSpacing: 0.5,
                                     ),
                                   ),
-                                  Text(
-                                    'ID: $id',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[50],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      'ID: $id',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -472,17 +606,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         },
                         child: Stack(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.notifications_outlined,
-                              size: 28,
-                              color: Colors.grey,
+                              size: 32,
+                              color: Colors.black,
                             ),
                             Positioned(
                               top: 0,
                               right: 0,
                               child: Container(
-                                width: 8,
-                                height: 8,
+                                width: 10,
+                                height: 10,
                                 decoration: const BoxDecoration(
                                   color: Colors.red,
                                   shape: BoxShape.circle,
@@ -751,6 +885,97 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 12),
+                // Civic Sense horizontal scroller with visible scrollbar
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.info_outline, color: Colors.black87),
+                              SizedBox(width: 8),
+                              Text(
+                                'Civic Sense',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'Learn & Share',
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 140,
+                        child: Scrollbar(
+                          controller: _civicScrollController,
+                          thumbVisibility: true,
+                          trackVisibility: true,
+                          thickness: 8,
+                          radius: const Radius.circular(6),
+                          child: ListView.builder(
+                            controller: _civicScrollController,
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _civicImagePaths.length,
+                            itemBuilder: (context, index) {
+                              final path = _civicImagePaths[index];
+                              final width = MediaQuery.of(context).size.width * 0.86;
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: SizedBox(
+                                    width: width,
+                                    height: 140,
+                                    child: Image.asset(
+                                      path,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (c, e, s) => SizedBox(
+                                        width: width,
+                                        height: 140,
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: Image.network(
+                                            'https://via.placeholder.com/800x400.png?text=Civic+Sense',
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (c2, e2, s2) => Container(
+                                              width: width,
+                                              height: 140,
+                                              color: Colors.blueGrey[50],
+                                              child: Center(
+                                                child: Text(
+                                                  'Add $path in assets',
+                                                  style: const TextStyle(color: Colors.grey),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 80),
               ],
             ),
@@ -898,6 +1123,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Colors.orange;
       case 'safe':
         return Colors.green;
+      case 'security':
+        return Colors.blue;
       default:
         return Colors.blueGrey;
     }
@@ -1038,13 +1265,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildAlert(String title, String badge, Color badgeColor, String message, String time) {
+    final isSecurity = badge.toLowerCase().contains('security') || title.toLowerCase().contains('security');
+    final color = isSecurity ? Colors.blue : badgeColor;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: badgeColor.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border(
-          left: BorderSide(color: badgeColor, width: 4),
+          left: BorderSide(color: color, width: 4),
         ),
       ),
       child: Column(
@@ -1055,7 +1284,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: badgeColor,
+                  color: color,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tourist_safety_hub/utils/constants.dart';
+import 'package:tourguard/utils/constants.dart';
 
 void main() {
   test('geofence zones map to fixed circle coordinates and radii', () {

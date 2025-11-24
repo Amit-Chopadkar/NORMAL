@@ -31,6 +31,14 @@
 
   <title>tourist_safety_hub</title>
   <link rel="manifest" href="manifest.json">
+  <!-- Google Maps JavaScript API (Places library) -->
+  <script>
+    // Stub initMap to satisfy the Maps API callback when Flutter handles maps separately.
+    function initMap() {
+      // Intentionally empty. Flutter or app JS can override if needed.
+    }
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtbyiNsjhAWH-7NJPT0xu_FJKRIi9YPzU&libraries=places&callback=initMap" async defer></script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

@@ -6,9 +6,16 @@ import '../models/place_model.dart';
 import 'api_environment.dart';
 
 class PlacesApiService {
+  static String? _overrideBaseUrl;
+
+  // Allows integration tests to override the base URL.
+  static set baseUrl(String value) => _overrideBaseUrl = value;
+  static void resetBaseUrlOverride() => _overrideBaseUrl = null;
+
   // The base URL now resolves dynamically based on platform and can be
   // overridden via --dart-define=PLACES_API_BASE_URL.
-  static String get _baseUrl => ApiEnvironment.placesBaseUrl;
+  static String get _baseUrl =>
+      _overrideBaseUrl ?? ApiEnvironment.placesBaseUrl;
   static String get _googleApiKey => ApiEnvironment.googlePlacesApiKey;
   static bool get _canFallbackToGoogle => _googleApiKey.isNotEmpty;
   static const _requestTimeout = Duration(seconds: 10);

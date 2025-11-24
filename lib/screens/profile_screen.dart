@@ -27,11 +27,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = authProvider.user;
 
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text(tr('profile')),
+        title: Text(tr('profile'), style: const TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.grey[800],
+        backgroundColor: const Color(0xFFF5F7FA),
+        foregroundColor: Colors.blue[900],
         elevation: 0,
         actions: [
           IconButton(
@@ -46,95 +47,158 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       body: user == null
-          ? Center(child: Text('No user data found. Please login.'))
+          ? Center(child: Text('No user data found. Please login.', style: TextStyle(color: Colors.grey[700], fontSize: 16)))
           : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // Profile Avatar
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: AppColors.primaryBlue.withOpacity(0.2),
-                      child: Text(
-                        user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                        style: TextStyle(
-                          fontSize: 32,
-                          color: AppColors.primaryBlue,
-                          fontWeight: FontWeight.bold,
+              child: Column(
+                children: [
+                  const SizedBox(height: 24),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F7FA),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
                         ),
-                      ),
+                      ],
+                      border: Border.all(color: Colors.blue[50]!, width: 1.5),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      user.name,
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      'ID: ${user.id}',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    const SizedBox(height: 24),
-                    // Profile Info Cards
-                    _buildInfoCard(tr('email'), user.email),
-                    const SizedBox(height: 12),
-                    _buildInfoCard(tr('phone'), user.phone),
-                    const SizedBox(height: 12),
-                    _buildInfoCard(tr('country'), user.nationality ?? 'India'),
-                    const SizedBox(height: 12),
-                    _buildInfoCard('User Type', user.userType.toUpperCase()),
-                    const SizedBox(height: 24),
-                    
-                    // Emergency Contacts
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red[200]!),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                tr('emergency_contacts'),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    child: Row(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.blue[800],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blue.withOpacity(0.15),
+                                blurRadius: 8,
+                                offset: Offset(0, 4),
                               ),
-                              if (authProvider.emergencyContacts.isNotEmpty)
-                                IconButton(
-                                  icon: const Icon(Icons.add_circle_outline, color: Colors.red),
-                                  onPressed: () => _showAddContactDialog(context),
-                                ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          if (authProvider.emergencyContacts.isEmpty)
-                            Center(
-                              child: ElevatedButton.icon(
-                                onPressed: () => _showAddContactDialog(context),
-                                icon: const Icon(Icons.add),
-                                label: const Text('Add Family Member'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                  foregroundColor: Colors.white,
-                                ),
-                              ),
-                            )
-                          else
-                            ...authProvider.emergencyContacts.map(
-                              (contact) => Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: _buildContactItem(contact['name'] ?? '', contact['phone'] ?? ''),
+                          child: CircleAvatar(
+                            radius: 32,
+                            backgroundColor: Colors.blue[800],
+                            child: Text(
+                              user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 32,
+                                color: Colors.white,
                               ),
                             ),
-                        ],
-                      ),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user.name,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[50],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'ID: ${user.id}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildInfoCard(tr('email'), user.email),
+                        const SizedBox(height: 12),
+                        _buildInfoCard(tr('phone'), user.phone),
+                        const SizedBox(height: 12),
+                        _buildInfoCard(tr('country'), user.nationality ?? 'India'),
+                        const SizedBox(height: 12),
+                        _buildInfoCard('User Type', user.userType.toUpperCase()),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.red[200]!),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              tr('emergency_contacts'),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add_circle_outline, color: Colors.red),
+                              onPressed: () => _showAddContactDialog(context),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        if (authProvider.emergencyContacts.isEmpty)
+                          Center(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _showAddContactDialog(context),
+                              icon: const Icon(Icons.add),
+                              label: const Text('Add Family Member'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          )
+                        else
+                          ...authProvider.emergencyContacts.map(
+                            (contact) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: _buildContactItem(contact['name'] ?? '', contact['phone'] ?? ''),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
             ),
     );

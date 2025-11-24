@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <application
         android:label="TourGuard"
         android:name="${applicationName}"
@@ -18,7 +19,7 @@
         <!-- Google Maps API Key: replace the value below with your API key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAHFoPQPwCSaexzu3JFLb8eHcnSO2LMK5I" />
+            android:value="AIzaSyDtbyiNsjhAWH-7NJPT0xu_FJKRIi9YPzU" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

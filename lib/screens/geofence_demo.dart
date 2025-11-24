@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:geofence_service/geofence_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io' show Platform;
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../utils/constants.dart';
 
 /// A simple Geofence demo screen.
 /// Note: This screen is not set as the app home by default.
@@ -131,9 +131,9 @@ class _GeofenceDemoState extends State<GeofenceDemo> {
     // Show notification on geofence enter/exit
     String notifTitle = 'Geofence Alert';
     String notifBody = '';
-    if (geofenceStatus == GeofenceStatus.enter) {
+    if (geofenceStatus == GeofenceStatus.ENTER) {
       notifBody = 'Entered $label';
-    } else if (geofenceStatus == GeofenceStatus.exit) {
+    } else if (geofenceStatus == GeofenceStatus.EXIT) {
       notifBody = 'Exited $label';
     } else {
       notifBody = 'Status changed: ${geofenceStatus.toString()}';
