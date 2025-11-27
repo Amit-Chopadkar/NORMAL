@@ -136,9 +136,16 @@ class ApiService {
       }
     }
 
+    // Store category and other metadata in description JSON
+    final descriptionObj = {
+      'originalMessage': data['description'],
+      'category': data['category'] ?? 'Other',
+      'status': 'reported',
+    };
+
     final backendDto = {
       'title': data['title'],
-      'description': data['description'],
+      'description': jsonEncode(descriptionObj),
       'severity': _mapSeverity(urgency),
       // Store location as JSON string on backend
       'location': jsonEncode({

@@ -60,6 +60,28 @@ export interface LoginResponse {
     };
 }
 
+export interface Incident {
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    status: string;
+    location: {
+        latitude: number;
+        longitude: number;
+        address?: string | null;
+        userId?: string | null;
+    };
+    createdAt: string;
+    user?: {
+        id: string;
+        name: string;
+        phone: string;
+        email: string;
+    } | null;
+}
+
 export interface ApiResponse<T = any> {
     success: boolean;
     data?: T;

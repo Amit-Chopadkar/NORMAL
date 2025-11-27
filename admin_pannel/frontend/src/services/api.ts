@@ -4,7 +4,7 @@
  */
 
 import axios from 'axios';
-import { LoginCredentials, LoginResponse, SosEvent, User, ApiResponse } from '../types';
+import { LoginCredentials, LoginResponse, SosEvent, User, Incident, ApiResponse } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -84,6 +84,25 @@ export const sosApi = {
 
     updateStatus: async (id: string, status: 'acknowledged' | 'resolved'): Promise<SosEvent> => {
         const response = await apiClient.patch<ApiResponse<SosEvent>>(`/api/sos/${id}`, { status });
+        return response.data.data!;
+    },
+};
+
+export const incidentsApi = {
+    listIncidents: async (filters?: { type?: 'sos' | 'regular'; status?: string; since?: string }): Promise<Incident[]> => {
+        const params = new URLSearchParams();
+        if (filters?.type) params.append('type', filters.type);
+        if (filters?.status) params.append('status', filters.status);
+        if (filters?.since) params.append('since', filters.since);
+
+        const response = await apiClient.get<ApiResponse<Incident[]>>(
+            `/api/incidents?${params.toString()}`
+        );
+        return response.data.data!;
+    },
+
+    getIncidentById: async (id: string): Promise<Incident> => {
+        const response = await apiClient.get<ApiResponse<Incident>>(`/api/incidents/${id}`);
         return response.data.data!;
     },
 };

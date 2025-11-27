@@ -14,31 +14,40 @@ import NearbyResources from './NearbyResources';
 import UserInfoCard from './UserInfoCard';
 import EmergencyContacts from './EmergencyContacts';
 import CommunicationLog from './CommunicationLog';
-import { SosEvent } from '../../types';
-import { sosApi } from '../../services/api';
+import { SosEvent, Incident } from '../../types';
+import { sosApi, incidentsApi } from '../../services/api';
 import { initializeSocket, onSosNew, onSosUpdate, disconnectSocket } from '../../services/socket';
+import RecentIncidents from './RecentIncidents';
 
 const Dashboard: React.FC = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [events, setEvents] = useState<SosEvent[]>([]);
+    const [incidents, setIncidents] = useState<Incident[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<SosEvent | null>(null);
+    const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
+    const [activeTab, setActiveTab] = useState<'sos' | 'incidents'>('sos');
     const [loading, setLoading] = useState(true);
     const [newEventId, setNewEventId] = useState<string | null>(null);
 
-    // Fetch initial events
+    // Fetch initial events and incidents
     useEffect(() => {
-        const fetchEvents = async () => {
+        const fetchData = async () => {
             try {
-                const data = await sosApi.listEvents();
-                setEvents(data);
+                const [sosData, incidentsData] = await Promise.all([
+                    sosApi.listEvents(),
+                    incidentsApi.listIncidents({ type: 'regular' }),
+                ]);
+                setEvents(sosData);
+                setIncidents(incidentsData);
             } catch (error) {
-                toast.error('Failed to load SOS events');
+                console.error('Failed to load data:', error);
+                toast.error('Failed to load data');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchEvents();
+        fetchData();
     }, []);
 
     // Initialize Socket.IO
@@ -117,6 +126,12 @@ const Dashboard: React.FC = () => {
 
     const handleCloseDetail = useCallback(() => {
         setSelectedEvent(null);
+        setSelectedIncident(null);
+    }, []);
+
+    const handleIncidentClick = useCallback((incident: Incident) => {
+        setSelectedIncident(incident);
+        setSelectedEvent(null);
     }, []);
 
     if (loading) {
@@ -175,19 +190,104 @@ const Dashboard: React.FC = () => {
                         {/* Right column: Details and resources */}
                         <div className="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col gap-4 h-full">
                             {/* Event detail or list */}
-                            <div className="h-[50%] bg-navy-light rounded-lg overflow-hidden">
-                                {selectedEvent ? (
-                                    <EventDetailPanel
-                                        event={selectedEvent}
-                                        onClose={handleCloseDetail}
-                                        onUpdate={handleEventUpdate}
-                                    />
+                            <div className="h-[50%] bg-navy-light rounded-lg overflow-hidden flex flex-col">
+                                {selectedEvent || selectedIncident ? (
+                                    selectedEvent ? (
+                                        <EventDetailPanel
+                                            event={selectedEvent}
+                                            onClose={handleCloseDetail}
+                                            onUpdate={handleEventUpdate}
+                                        />
+                                    ) : (
+                                        <div className="p-4 h-full overflow-y-auto">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="text-lg font-semibold text-white">Incident Details</h3>
+                                                <button
+                                                    onClick={handleCloseDetail}
+                                                    className="text-gray-400 hover:text-white"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                            {selectedIncident && (
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <p className="text-xs text-gray-400">Title</p>
+                                                        <p className="text-white font-semibold">{selectedIncident.title}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-gray-400">Category</p>
+                                                        <p className="text-white">{selectedIncident.category}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-gray-400">Severity</p>
+                                                        <p className="text-white">{selectedIncident.severity}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-gray-400">Description</p>
+                                                        <p className="text-white text-sm">{selectedIncident.description}</p>
+                                                    </div>
+                                                    {selectedIncident.user && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-400">Reported By</p>
+                                                            <p className="text-white">{selectedIncident.user.name}</p>
+                                                            <p className="text-gray-400 text-xs">{selectedIncident.user.email}</p>
+                                                        </div>
+                                                    )}
+                                                    {selectedIncident.location && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-400">Location</p>
+                                                            <p className="text-white text-xs">
+                                                                {selectedIncident.location.latitude.toFixed(6)}, {selectedIncident.location.longitude.toFixed(6)}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
                                 ) : (
-                                    <SosList
-                                        events={events}
-                                        onEventClick={handleEventClick}
-                                        selectedEventId={selectedEvent?.id}
-                                    />
+                                    <>
+                                        {/* Tabs */}
+                                        <div className="flex border-b border-gray-700">
+                                            <button
+                                                onClick={() => setActiveTab('sos')}
+                                                className={`flex-1 px-4 py-2 text-sm font-medium ${
+                                                    activeTab === 'sos'
+                                                        ? 'bg-navy-dark text-danger border-b-2 border-danger'
+                                                        : 'text-gray-400 hover:text-white'
+                                                }`}
+                                            >
+                                                SOS Events ({events.length})
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveTab('incidents')}
+                                                className={`flex-1 px-4 py-2 text-sm font-medium ${
+                                                    activeTab === 'incidents'
+                                                        ? 'bg-navy-dark text-blue-400 border-b-2 border-blue-400'
+                                                        : 'text-gray-400 hover:text-white'
+                                                }`}
+                                            >
+                                                Recent Incidents ({incidents.length})
+                                            </button>
+                                        </div>
+                                        {/* Content */}
+                                        <div className="flex-1 overflow-hidden">
+                                            {activeTab === 'sos' ? (
+                                                <SosList
+                                                    events={events}
+                                                    onEventClick={handleEventClick}
+                                                    selectedEventId={selectedEvent?.id}
+                                                />
+                                            ) : (
+                                                <RecentIncidents
+                                                    incidents={incidents}
+                                                    onIncidentClick={handleIncidentClick}
+                                                    selectedIncidentId={selectedIncident?.id}
+                                                />
+                                            )}
+                                        </div>
+                                    </>
                                 )}
                             </div>
 
