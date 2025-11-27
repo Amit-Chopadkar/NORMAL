@@ -1,0 +1,888 @@
+.
+├──  lib
+│   └── services
+│       └── api_service.dart
+├── .DS_Store
+├── .dart_tool
+│   ├── dartpad
+│   │   └── web_plugin_registrant.dart
+│   ├── flutter_build
+│   │   ├── 74e3d47d73f4a781ebeeb60ec924d8cd
+│   │   └── dart_plugin_registrant.dart
+│   ├── package_config.json
+│   ├── package_graph.json
+│   └── version
+├── .flutter-plugins-dependencies
+├── .git
+│   ├── .DS_Store
+│   ├── COMMIT_EDITMSG
+│   ├── FETCH_HEAD
+│   ├── HEAD
+│   ├── ORIG_HEAD
+│   ├── config
+│   ├── description
+│   ├── hooks
+│   │   ├── applypatch-msg.sample
+│   │   ├── commit-msg.sample
+│   │   ├── fsmonitor-watchman.sample
+│   │   ├── post-update.sample
+│   │   ├── pre-applypatch.sample
+│   │   ├── pre-commit.sample
+│   │   ├── pre-merge-commit.sample
+│   │   ├── pre-push.sample
+│   │   ├── pre-rebase.sample
+│   │   ├── pre-receive.sample
+│   │   ├── prepare-commit-msg.sample
+│   │   ├── push-to-checkout.sample
+│   │   ├── sendemail-validate.sample
+│   │   └── update.sample
+│   ├── index
+│   ├── info
+│   │   ├── exclude
+│   │   └── refs
+│   ├── logs
+│   │   ├── HEAD
+│   │   └── refs
+│   ├── objects
+│   │   ├── 01
+│   │   ├── 02
+│   │   ├── 03
+│   │   ├── 06
+│   │   ├── 08
+│   │   ├── 09
+│   │   ├── 0a
+│   │   ├── 0b
+│   │   ├── 0d
+│   │   ├── 10
+│   │   ├── 11
+│   │   ├── 15
+│   │   ├── 16
+│   │   ├── 1a
+│   │   ├── 1e
+│   │   ├── 21
+│   │   ├── 24
+│   │   ├── 25
+│   │   ├── 27
+│   │   ├── 28
+│   │   ├── 29
+│   │   ├── 2b
+│   │   ├── 2c
+│   │   ├── 2d
+│   │   ├── 2f
+│   │   ├── 32
+│   │   ├── 36
+│   │   ├── 37
+│   │   ├── 39
+│   │   ├── 3a
+│   │   ├── 3b
+│   │   ├── 3e
+│   │   ├── 3f
+│   │   ├── 41
+│   │   ├── 42
+│   │   ├── 43
+│   │   ├── 44
+│   │   ├── 45
+│   │   ├── 46
+│   │   ├── 48
+│   │   ├── 4a
+│   │   ├── 55
+│   │   ├── 58
+│   │   ├── 59
+│   │   ├── 60
+│   │   ├── 62
+│   │   ├── 66
+│   │   ├── 6d
+│   │   ├── 6e
+│   │   ├── 6f
+│   │   ├── 70
+│   │   ├── 74
+│   │   ├── 78
+│   │   ├── 7c
+│   │   ├── 7d
+│   │   ├── 7f
+│   │   ├── 80
+│   │   ├── 82
+│   │   ├── 83
+│   │   ├── 84
+│   │   ├── 85
+│   │   ├── 86
+│   │   ├── 87
+│   │   ├── 8a
+│   │   ├── 8e
+│   │   ├── 8f
+│   │   ├── 91
+│   │   ├── 92
+│   │   ├── 93
+│   │   ├── 99
+│   │   ├── 9a
+│   │   ├── 9c
+│   │   ├── 9d
+│   │   ├── 9f
+│   │   ├── a1
+│   │   ├── a3
+│   │   ├── ab
+│   │   ├── ad
+│   │   ├── b2
+│   │   ├── b3
+│   │   ├── b4
+│   │   ├── b5
+│   │   ├── b6
+│   │   ├── b7
+│   │   ├── b8
+│   │   ├── ba
+│   │   ├── bd
+│   │   ├── be
+│   │   ├── bf
+│   │   ├── c6
+│   │   ├── c7
+│   │   ├── c9
+│   │   ├── cb
+│   │   ├── cf
+│   │   ├── d1
+│   │   ├── d4
+│   │   ├── d5
+│   │   ├── d7
+│   │   ├── d8
+│   │   ├── da
+│   │   ├── db
+│   │   ├── de
+│   │   ├── e2
+│   │   ├── e4
+│   │   ├── e5
+│   │   ├── e6
+│   │   ├── e8
+│   │   ├── ea
+│   │   ├── ee
+│   │   ├── ef
+│   │   ├── f1
+│   │   ├── f4
+│   │   ├── fa
+│   │   ├── fc
+│   │   ├── info
+│   │   └── pack
+│   ├── packed-refs
+│   └── refs
+│       ├── heads
+│       ├── remotes
+│       └── tags
+├── .gitignore
+├── .metadata
+├── .vscode
+│   └── settings.json
+├── Admin_Panel
+│   ├── .DS_Store
+│   ├── backend
+│   │   ├── .env
+│   │   ├── .env.example
+│   │   ├── .gitignore
+│   │   ├── Dockerfile
+│   │   ├── jest.config.js
+│   │   ├── migrations
+│   │   ├── node_modules
+│   │   ├── package-lock.json
+│   │   ├── package.json
+│   │   ├── setup-database.js
+│   │   ├── src
+│   │   └── tsconfig.json
+│   └── frontend
+│       ├── .env
+│       ├── .env.example
+│       ├── .gitignore
+│       ├── Dockerfile
+│       ├── index.html
+│       ├── nginx.conf
+│       ├── node_modules
+│       ├── package-lock.json
+│       ├── package.json
+│       ├── postcss.config.js
+│       ├── src
+│       ├── tailwind.config.js
+│       ├── tsconfig.json
+│       ├── tsconfig.node.json
+│       └── vite.config.ts
+├── BACKEND_SETUP.js
+├── DEPLOYMENT_CHECKLIST.md
+├── Database.sql
+├── FINAL_DELIVERY.md
+├── FINAL_PRODUCT_SUMMARY.md
+├── analysis_options.yaml
+├── android
+│   ├── .DS_Store
+│   ├── .gitignore
+│   ├── .gradle
+│   │   ├── 8.14
+│   │   ├── buildOutputCleanup
+│   │   ├── file-system.probe
+│   │   ├── noVersion
+│   │   └── vcs-1
+│   ├── .kotlin
+│   │   └── sessions
+│   ├── app
+│   │   ├── build.gradle.kts
+│   │   └── src
+│   ├── build
+│   │   └── reports
+│   ├── build.gradle.kts
+│   ├── gradle
+│   │   └── wrapper
+│   ├── gradle.properties
+│   ├── gradlew
+│   ├── gradlew.bat
+│   ├── local.properties
+│   └── settings.gradle.kts
+├── assets
+│   ├── .DS_Store
+│   ├── civic_sense
+│   │   ├── civic1.png
+│   │   ├── civic2.png
+│   │   └── civic3.png
+│   ├── icon
+│   │   ├── app_icon.png
+│   │   ├── simple_shield_v3.png
+│   │   ├── tourguard_icon.png
+│   │   └── tourguard_icon_v2.png
+│   └── images
+│       ├── .DS_Store
+│       ├── icon.png
+│       ├── icons
+│       └── logo.png
+├── build
+│   ├── .cxx
+│   │   └── debug
+│   ├── .last_build_id
+│   ├── 2e28080c4ccb2d9610b36bfc0c89245e
+│   │   ├── .filecache
+│   │   ├── _composite.stamp
+│   │   ├── dart_build.d
+│   │   ├── dart_build.stamp
+│   │   ├── dart_build_result.json
+│   │   ├── gen_dart_plugin_registrant.stamp
+│   │   ├── gen_localizations.stamp
+│   │   └── outputs.json
+│   ├── app
+│   │   ├── deeplink.json
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── kotlin
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── audioplayers_android
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── kotlin
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── ca33f282d90356a564f3e3da52c97351.cache.dill.track.dill
+│   ├── cloud_firestore
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── firebase_auth
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── firebase_core
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── fl_location
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── kotlin
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── flutter_activity_recognition
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── kotlin
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── flutter_local_notifications
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── flutter_plugin_android_lifecycle
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── geofence_service
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── kotlin
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── geolocator_android
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── google_maps_flutter_android
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── image_picker_android
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── native_assets
+│   │   └── android
+│   ├── path_provider_android
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── permission_handler_android
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── reports
+│   │   └── problems
+│   ├── shared_preferences_android
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── kotlin
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── speech_to_text
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── kotlin
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── sqflite_android
+│   │   ├── .transforms
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── outputs
+│   │   └── tmp
+│   └── url_launcher_android
+│       ├── .transforms
+│       ├── generated
+│       ├── intermediates
+│       ├── outputs
+│       └── tmp
+├── build_error.txt
+├── file_structure.txt
+├── ios
+│   ├── .DS_Store
+│   ├── .gitignore
+│   ├── Flutter
+│   │   ├── AppFrameworkInfo.plist
+│   │   ├── Debug.xcconfig
+│   │   ├── Generated.xcconfig
+│   │   ├── Release.xcconfig
+│   │   ├── ephemeral
+│   │   └── flutter_export_environment.sh
+│   ├── Runner
+│   │   ├── AppDelegate.swift
+│   │   ├── Assets.xcassets
+│   │   ├── Base.lproj
+│   │   ├── GeneratedPluginRegistrant.h
+│   │   ├── GeneratedPluginRegistrant.m
+│   │   ├── Info.plist
+│   │   └── Runner-Bridging-Header.h
+│   ├── Runner.xcodeproj
+│   │   ├── project.pbxproj
+│   │   ├── project.xcworkspace
+│   │   └── xcshareddata
+│   ├── Runner.xcworkspace
+│   │   ├── contents.xcworkspacedata
+│   │   └── xcshareddata
+│   └── RunnerTests
+│       └── RunnerTests.swift
+├── lib
+│   ├── .DS_Store
+│   ├── core
+│   │   ├── constants
+│   │   ├── themes
+│   │   └── utils
+│   ├── data
+│   │   ├── models
+│   │   └── services
+│   ├── main.dart
+│   ├── models
+│   │   ├── alert_model.dart
+│   │   ├── contact_model.dart
+│   │   ├── place_model.dart
+│   │   ├── suggestion_model.dart
+│   │   └── user_model.dart
+│   ├── presentation
+│   │   ├── pages
+│   │   ├── providers
+│   │   └── widgets
+│   ├── screens
+│   │   ├── dashboard_screen.dart
+│   │   ├── emergency_screen.dart
+│   │   ├── explore_screen.dart
+│   │   ├── geofence_demo.dart
+│   │   ├── geofence_events_screen.dart
+│   │   ├── incident_report_screen.dart
+│   │   ├── my_incidents_screen.dart
+│   │   ├── profile_screen.dart
+│   │   ├── settings_screen.dart
+│   │   ├── settings_screen_v2.dart
+│   │   └── splash_screen.dart
+│   ├── services
+│   │   ├── active_alert_service.dart
+│   │   ├── api_environment.dart
+│   │   ├── api_service.dart
+│   │   ├── auth_service.dart
+│   │   ├── backend_service.dart
+│   │   ├── blockchain_service.dart
+│   │   ├── chat_service.dart
+│   │   ├── chatbot_service.dart
+│   │   ├── emergency_service.dart
+│   │   ├── family_tracking_service.dart
+│   │   ├── gemini_service.dart
+│   │   ├── geofence_service.dart
+│   │   ├── incident_service.dart
+│   │   ├── localization_service.dart
+│   │   ├── location_service.dart
+│   │   ├── map_service.dart
+│   │   ├── notification_service.dart
+│   │   ├── places_api_service.dart
+│   │   ├── safety_score_service.dart
+│   │   ├── translation_api.dart
+│   │   └── weather_service.dart
+│   ├── utils
+│   │   ├── constants.dart
+│   │   ├── geofence_helper.dart
+│   │   ├── helpers.dart
+│   │   └── localization_extensions.dart
+│   └── widgets
+│       ├── alert_card.dart
+│       ├── bottom_nav_bar.dart
+│       ├── chatbot_widget.dart
+│       ├── filter_chip.dart
+│       ├── geofence_example.dart
+│       ├── place_card.dart
+│       ├── safety_score_card.dart
+│       ├── setting_tile.dart
+│       ├── shimmer_place_card.dart
+│       └── sos_button.dart
+├── linux
+│   ├── .DS_Store
+│   ├── .gitignore
+│   ├── CMakeLists.txt
+│   ├── flutter
+│   │   ├── CMakeLists.txt
+│   │   ├── ephemeral
+│   │   ├── generated_plugin_registrant.cc
+│   │   ├── generated_plugin_registrant.h
+│   │   └── generated_plugins.cmake
+│   └── runner
+│       ├── CMakeLists.txt
+│       ├── main.cc
+│       ├── my_application.cc
+│       └── my_application.h
+├── logs
+│   ├── combined.log
+│   └── error.log
+├── macos
+│   ├── .DS_Store
+│   ├── .gitignore
+│   ├── Flutter
+│   │   ├── Flutter-Debug.xcconfig
+│   │   ├── Flutter-Release.xcconfig
+│   │   ├── GeneratedPluginRegistrant.swift
+│   │   └── ephemeral
+│   ├── Runner
+│   │   ├── AppDelegate.swift
+│   │   ├── Assets.xcassets
+│   │   ├── Base.lproj
+│   │   ├── Configs
+│   │   ├── DebugProfile.entitlements
+│   │   ├── Info.plist
+│   │   ├── MainFlutterWindow.swift
+│   │   └── Release.entitlements
+│   ├── Runner.xcodeproj
+│   │   ├── project.pbxproj
+│   │   ├── project.xcworkspace
+│   │   └── xcshareddata
+│   ├── Runner.xcworkspace
+│   │   ├── contents.xcworkspacedata
+│   │   └── xcshareddata
+│   └── RunnerTests
+│       └── RunnerTests.swift
+├── output-onlinepngtools.png
+├── project_structure.txt
+├── project_structure2.txt
+├── pubspec.lock
+├── pubspec.yaml
+├── test
+│   ├── geofence_helper_test.dart
+│   ├── geofence_zones_test.dart
+│   ├── places_api_integration_test.dart
+│   └── widget_test.dart
+├── tourguard-backend Final
+│   ├── .env
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── Dockerfile
+│   ├── README.md
+│   ├── dist
+│   │   ├── alerts
+│   │   ├── app.module.d.ts
+│   │   ├── app.module.js
+│   │   ├── auth
+│   │   ├── common
+│   │   ├── config
+│   │   ├── health.controller.d.ts
+│   │   ├── health.controller.js
+│   │   ├── incidents
+│   │   ├── main.d.ts
+│   │   ├── main.js
+│   │   ├── misc
+│   │   ├── otp
+│   │   ├── seed.d.ts
+│   │   ├── seed.js
+│   │   ├── sos
+│   │   ├── tours
+│   │   ├── tsconfig.build.tsbuildinfo
+│   │   ├── users
+│   │   └── zones
+│   ├── docker-compose.yml
+│   ├── node_modules
+│   │   ├── .bin
+│   │   ├── .package-lock.json
+│   │   ├── @borewit
+│   │   ├── @cspotcode
+│   │   ├── @isaacs
+│   │   ├── @jridgewell
+│   │   ├── @lukeed
+│   │   ├── @nestjs
+│   │   ├── @nuxtjs
+│   │   ├── @pkgjs
+│   │   ├── @sqltools
+│   │   ├── @tokenizer
+│   │   ├── @tsconfig
+│   │   ├── @types
+│   │   ├── accepts
+│   │   ├── acorn
+│   │   ├── acorn-walk
+│   │   ├── ansi-regex
+│   │   ├── ansi-styles
+│   │   ├── ansis
+│   │   ├── anymatch
+│   │   ├── app-root-path
+│   │   ├── append-field
+│   │   ├── arg
+│   │   ├── array-flatten
+│   │   ├── available-typed-arrays
+│   │   ├── balanced-match
+│   │   ├── base64-js
+│   │   ├── bcryptjs
+│   │   ├── binary-extensions
+│   │   ├── body-parser
+│   │   ├── brace-expansion
+│   │   ├── braces
+│   │   ├── buffer
+│   │   ├── buffer-equal-constant-time
+│   │   ├── buffer-from
+│   │   ├── busboy
+│   │   ├── bytes
+│   │   ├── call-bind
+│   │   ├── call-bind-apply-helpers
+│   │   ├── call-bound
+│   │   ├── chalk
+│   │   ├── chokidar
+│   │   ├── class-transformer
+│   │   ├── class-validator
+│   │   ├── cliui
+│   │   ├── color-convert
+│   │   ├── color-name
+│   │   ├── concat-map
+│   │   ├── concat-stream
+│   │   ├── consola
+│   │   ├── content-disposition
+│   │   ├── content-type
+│   │   ├── cookie
+│   │   ├── cookie-signature
+│   │   ├── cors
+│   │   ├── create-require
+│   │   ├── cross-spawn
+│   │   ├── dayjs
+│   │   ├── debug
+│   │   ├── dedent
+│   │   ├── define-data-property
+│   │   ├── depd
+│   │   ├── destroy
+│   │   ├── diff
+│   │   ├── dotenv
+│   │   ├── dotenv-expand
+│   │   ├── dunder-proto
+│   │   ├── dynamic-dedupe
+│   │   ├── eastasianwidth
+│   │   ├── ecdsa-sig-formatter
+│   │   ├── ee-first
+│   │   ├── emoji-regex
+│   │   ├── encodeurl
+│   │   ├── es-define-property
+│   │   ├── es-errors
+│   │   ├── es-object-atoms
+│   │   ├── escalade
+│   │   ├── escape-html
+│   │   ├── etag
+│   │   ├── express
+│   │   ├── fast-safe-stringify
+│   │   ├── fflate
+│   │   ├── file-type
+│   │   ├── fill-range
+│   │   ├── finalhandler
+│   │   ├── for-each
+│   │   ├── foreground-child
+│   │   ├── forwarded
+│   │   ├── fresh
+│   │   ├── fs.realpath
+│   │   ├── fsevents
+│   │   ├── function-bind
+│   │   ├── get-caller-file
+│   │   ├── get-intrinsic
+│   │   ├── get-proto
+│   │   ├── glob
+│   │   ├── glob-parent
+│   │   ├── gopd
+│   │   ├── has-flag
+│   │   ├── has-property-descriptors
+│   │   ├── has-symbols
+│   │   ├── has-tostringtag
+│   │   ├── hasown
+│   │   ├── helmet
+│   │   ├── http-errors
+│   │   ├── iconv-lite
+│   │   ├── ieee754
+│   │   ├── inflight
+│   │   ├── inherits
+│   │   ├── ipaddr.js
+│   │   ├── is-binary-path
+│   │   ├── is-callable
+│   │   ├── is-core-module
+│   │   ├── is-extglob
+│   │   ├── is-fullwidth-code-point
+│   │   ├── is-glob
+│   │   ├── is-number
+│   │   ├── is-typed-array
+│   │   ├── isarray
+│   │   ├── isexe
+│   │   ├── iterare
+│   │   ├── jackspeak
+│   │   ├── jsonwebtoken
+│   │   ├── jwa
+│   │   ├── jws
+│   │   ├── libphonenumber-js
+│   │   ├── lodash
+│   │   ├── lodash.includes
+│   │   ├── lodash.isboolean
+│   │   ├── lodash.isinteger
+│   │   ├── lodash.isnumber
+│   │   ├── lodash.isplainobject
+│   │   ├── lodash.isstring
+│   │   ├── lodash.once
+│   │   ├── lru-cache
+│   │   ├── make-error
+│   │   ├── math-intrinsics
+│   │   ├── media-typer
+│   │   ├── merge-descriptors
+│   │   ├── methods
+│   │   ├── mime
+│   │   ├── mime-db
+│   │   ├── mime-types
+│   │   ├── minimatch
+│   │   ├── minimist
+│   │   ├── minipass
+│   │   ├── mkdirp
+│   │   ├── ms
+│   │   ├── multer
+│   │   ├── negotiator
+│   │   ├── node-fetch
+│   │   ├── normalize-path
+│   │   ├── object-assign
+│   │   ├── object-inspect
+│   │   ├── on-finished
+│   │   ├── once
+│   │   ├── package-json-from-dist
+│   │   ├── parseurl
+│   │   ├── passport
+│   │   ├── passport-jwt
+│   │   ├── passport-local
+│   │   ├── passport-strategy
+│   │   ├── path-is-absolute
+│   │   ├── path-key
+│   │   ├── path-parse
+│   │   ├── path-scurry
+│   │   ├── path-to-regexp
+│   │   ├── pause
+│   │   ├── pg
+│   │   ├── pg-cloudflare
+│   │   ├── pg-connection-string
+│   │   ├── pg-int8
+│   │   ├── pg-pool
+│   │   ├── pg-protocol
+│   │   ├── pg-types
+│   │   ├── pgpass
+│   │   ├── picomatch
+│   │   ├── possible-typed-array-names
+│   │   ├── postgres-array
+│   │   ├── postgres-bytea
+│   │   ├── postgres-date
+│   │   ├── postgres-interval
+│   │   ├── proxy-addr
+│   │   ├── qs
+│   │   ├── range-parser
+│   │   ├── raw-body
+│   │   ├── readable-stream
+│   │   ├── readdirp
+│   │   ├── reflect-metadata
+│   │   ├── require-directory
+│   │   ├── resolve
+│   │   ├── rimraf
+│   │   ├── rxjs
+│   │   ├── safe-buffer
+│   │   ├── safer-buffer
+│   │   ├── semver
+│   │   ├── send
+│   │   ├── serve-static
+│   │   ├── set-function-length
+│   │   ├── setprototypeof
+│   │   ├── sha.js
+│   │   ├── shebang-command
+│   │   ├── shebang-regex
+│   │   ├── side-channel
+│   │   ├── side-channel-list
+│   │   ├── side-channel-map
+│   │   ├── side-channel-weakmap
+│   │   ├── signal-exit
+│   │   ├── source-map
+│   │   ├── source-map-support
+│   │   ├── split2
+│   │   ├── sql-highlight
+│   │   ├── statuses
+│   │   ├── streamsearch
+│   │   ├── string-width
+│   │   ├── string-width-cjs
+│   │   ├── string_decoder
+│   │   ├── strip-ansi
+│   │   ├── strip-ansi-cjs
+│   │   ├── strip-bom
+│   │   ├── strip-json-comments
+│   │   ├── strtok3
+│   │   ├── supports-color
+│   │   ├── supports-preserve-symlinks-flag
+│   │   ├── to-buffer
+│   │   ├── to-regex-range
+│   │   ├── toidentifier
+│   │   ├── token-types
+│   │   ├── tr46
+│   │   ├── tree-kill
+│   │   ├── ts-node
+│   │   ├── ts-node-dev
+│   │   ├── tsconfig
+│   │   ├── tslib
+│   │   ├── type-is
+│   │   ├── typed-array-buffer
+│   │   ├── typedarray
+│   │   ├── typeorm
+│   │   ├── typescript
+│   │   ├── uid
+│   │   ├── uint8array-extras
+│   │   ├── undici-types
+│   │   ├── unpipe
+│   │   ├── util-deprecate
+│   │   ├── utils-merge
+│   │   ├── uuid
+│   │   ├── v8-compile-cache-lib
+│   │   ├── validator
+│   │   ├── vary
+│   │   ├── webidl-conversions
+│   │   ├── whatwg-url
+│   │   ├── which
+│   │   ├── which-typed-array
+│   │   ├── wrap-ansi
+│   │   ├── wrap-ansi-cjs
+│   │   ├── wrappy
+│   │   ├── xtend
+│   │   ├── y18n
+│   │   ├── yargs
+│   │   ├── yargs-parser
+│   │   └── yn
+│   ├── ormconfig.js
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── src
+│   │   ├── alerts
+│   │   ├── app.module.ts
+│   │   ├── auth
+│   │   ├── common
+│   │   ├── config
+│   │   ├── health.controller.ts
+│   │   ├── incidents
+│   │   ├── main.ts
+│   │   ├── misc
+│   │   ├── otp
+│   │   ├── seed.ts
+│   │   ├── sos
+│   │   ├── tours
+│   │   ├── users
+│   │   └── zones
+│   ├── tsconfig.build.json
+│   ├── tsconfig.json
+│   └── uploads
+│       └── profile-photos
+├── web
+│   ├── favicon.png
+│   ├── icons
+│   │   ├── Icon-192.png
+│   │   ├── Icon-512.png
+│   │   ├── Icon-maskable-192.png
+│   │   └── Icon-maskable-512.png
+│   ├── index.html
+│   └── manifest.json
+└── windows
+    ├── .DS_Store
+    ├── .gitignore
+    ├── CMakeLists.txt
+    ├── flutter
+    │   ├── CMakeLists.txt
+    │   ├── ephemeral
+    │   ├── generated_plugin_registrant.cc
+    │   ├── generated_plugin_registrant.h
+    │   └── generated_plugins.cmake
+    └── runner
+        ├── CMakeLists.txt
+        ├── Runner.rc
+        ├── flutter_window.cpp
+        ├── flutter_window.h
+        ├── main.cpp
+        ├── resource.h
+        ├── resources
+        ├── runner.exe.manifest
+        ├── utils.cpp
+        ├── utils.h
+        ├── win32_window.cpp
+        └── win32_window.h
+
+633 directories, 253 files

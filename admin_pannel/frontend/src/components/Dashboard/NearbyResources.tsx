@@ -23,11 +23,10 @@ interface NearbyResourcesProps {
 
 const NearbyResources: React.FC<NearbyResourcesProps> = ({ event }) => {
     const resources: Resource[] = [
-        { icon: '🚔', name: 'Police Station', distance: '0.8 km', action: 'DISPATCH', actionClass: 'bg-success', latitude: 19.0760, longitude: 72.8777, phone: '100' },
-        { icon: '🚔', name: 'Central Precinct', distance: '0.8 km', action: 'CONTACT', actionClass: 'bg-success', phone: '+91-22-2262-0111' },
+        { icon: '🚔', name: 'Police Station', distance: '0.8 km', action: 'DISPATCH', actionClass: 'bg-success', latitude: 19.0760, longitude: 72.8777, phone: '112' },
+        { icon: '🚔', name: 'Central Police Zone', distance: '0.8 km', action: 'CONTACT', actionClass: 'bg-success', phone: '+91-22-2262-0111' },
         { icon: '🏥', name: 'City General Hospital', distance: '1.2 km', action: 'CONTACT', actionClass: 'bg-success', phone: '+91-22-2373-5555' },
         { icon: '🚒', name: 'Fire Station', distance: '0.5 km', action: 'CONTACT', actionClass: 'bg-success', phone: '101' },
-        { icon: '🚑', name: 'Volunteer First Aid', distance: 'Local Team', action: 'DISPATCH', actionClass: 'bg-success', latitude: 19.0780, longitude: 72.8800, phone: '108' },
     ];
 
     const handleAction = (resource: Resource) => {
@@ -55,14 +54,14 @@ const NearbyResources: React.FC<NearbyResourcesProps> = ({ event }) => {
     };
 
     return (
-        <div className="card h-full">
-            <h3 className="font-semibold text-white mb-4">
+        <div className="card h-full flex flex-col">
+            <h3 className="font-semibold text-white mb-4 shrink-0">
                 {event ? 'NEARBY HELP & RESOURCES' : 'EMERGENCY RESOURCES'}
             </h3>
 
             {/* Show event location if selected */}
             {event && (
-                <div className="mb-3 p-2 bg-navy-dark rounded">
+                <div className="mb-3 p-2 bg-navy-dark rounded shrink-0">
                     <p className="text-xs text-gray-400">Event Location</p>
                     <p className="text-white text-sm font-mono">
                         {event.latitude.toFixed(6)}, {event.longitude.toFixed(6)}
@@ -70,7 +69,7 @@ const NearbyResources: React.FC<NearbyResourcesProps> = ({ event }) => {
                 </div>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-2 overflow-y-auto flex-1 pr-2 custom-scrollbar">
                 {resources.map((resource, idx) => (
                     <div
                         key={idx}

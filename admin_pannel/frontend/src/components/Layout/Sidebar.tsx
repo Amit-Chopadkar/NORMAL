@@ -26,20 +26,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     } lg:translate-x-0`}
             >
                 <div className="p-6">
-                    <h2 className="text-lg font-semibold text-white mb-4">Menu</h2>
+                    {/* <h2 className="text-lg font-semibold text-white mb-4">Menu</h2> */}
                     <nav className="space-y-2">
-                        <a
-                            href="#dashboard"
-                            className="block px-4 py-2 bg-danger text-white rounded hover:bg-danger-dark"
+                        <p
+                            // href="#dashboard"
+                            className="block px-4 py-2 bg-danger text-white rounded cursor:default"
                         >
                             🏠 Dashboard
-                        </a>
-                        <a
+                        </p>
+                        {/* <a
                             href="#recent-reports"
                             className="block px-4 py-2 text-gray-300 rounded hover:bg-navy"
                         >
                             📋 Recent Reports
-                        </a>
+                        </a> */}
                     </nav>
 
                     {/* Recent SOS Events Summary */}
