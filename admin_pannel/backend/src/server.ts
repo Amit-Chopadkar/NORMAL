@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import sosRoutes from './routes/sos.routes';
 import incidentsRoutes from './routes/incidents.routes';
+import zonesRoutes from './routes/zones.routes';
 import db from './database/db';
 
 dotenv.config();
@@ -37,6 +38,7 @@ app.use(authRoutes);
 app.use(userRoutes);
 app.use(sosRoutes);
 app.use(incidentsRoutes);
+app.use(zonesRoutes);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
