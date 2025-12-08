@@ -1,13 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
+import 'blockchain_service.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String userBoxName = 'userBox';
 
-  // Sign Up
+  // Sign Up with Blockchain Hash Storage
   static Future<bool> signUp({
     required String email,
     required String password,
@@ -23,7 +24,31 @@ class AuthService {
       User? user = userCredential.user;
 
       if (user != null) {
-        // Save to Firestore
+        // Store registration hash on Ethereum blockchain
+        String? blockchainHashId;
+        try {
+          final blockchainResult = await BlockchainService.storeRegistration(
+            userId: user.uid,
+            email: email,
+            phone: phone,
+            name: name,
+          );
+          
+          if (blockchainResult.success) {
+            blockchainHashId = blockchainResult.hashId;
+            print('[Auth] Registration recorded on blockchain: ${blockchainResult.hashId}');
+            print('[Auth] Transaction hash: ${blockchainResult.txHash}');
+            print('[Auth] Block number: ${blockchainResult.blockNumber}');
+          } else {
+            print('[Auth] Blockchain registration failed: ${blockchainResult.error}');
+            // Continue with registration even if blockchain fails
+          }
+        } catch (e) {
+          print('[Auth] Blockchain error (non-fatal): $e');
+          // Continue with registration even if blockchain is unavailable
+        }
+
+        // Save to Firestore with blockchain hash
         await _firestore.collection('users').doc(user.uid).set({
           'uid': user.uid,
           'name': name,
@@ -33,6 +58,8 @@ class AuthService {
           'avatar': 'https://i.pravatar.cc/150?u=$email',
           'country': 'India',
           'memberSince': DateTime.now().toString(),
+          'blockchainHashId': blockchainHashId,
+          'blockchainRegistered': blockchainHashId != null,
         });
 
         // Save locally
@@ -42,6 +69,7 @@ class AuthService {
           'name': name,
           'email': email,
           'phone': phone,
+          'blockchainHashId': blockchainHashId,
         });
 
         return true;
@@ -53,7 +81,7 @@ class AuthService {
     }
   }
 
-  // Login
+  // Login with Blockchain Hash Storage
   static Future<bool> login({
     required String email,
     required String password,
@@ -67,14 +95,42 @@ class AuthService {
       User? user = userCredential.user;
 
       if (user != null) {
+        // Store login hash on Ethereum blockchain
+        String? loginHashId;
+        try {
+          final blockchainResult = await BlockchainService.storeLogin(
+            userId: user.uid,
+            deviceId: 'flutter_${DateTime.now().millisecondsSinceEpoch}',
+          );
+          
+          if (blockchainResult.success) {
+            loginHashId = blockchainResult.hashId;
+            print('[Auth] Login recorded on blockchain: ${blockchainResult.hashId}');
+            print('[Auth] Transaction hash: ${blockchainResult.txHash}');
+          } else {
+            print('[Auth] Blockchain login failed: ${blockchainResult.error}');
+            // Continue with login even if blockchain fails
+          }
+        } catch (e) {
+          print('[Auth] Blockchain error (non-fatal): $e');
+          // Continue with login even if blockchain is unavailable
+        }
+
         // Get user data from Firestore
         DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
         Map<String, dynamic> userData = doc.data() as Map<String, dynamic>;
+
+        // Update last login hash in Firestore
+        await _firestore.collection('users').doc(user.uid).update({
+          'lastLoginAt': DateTime.now(),
+          'lastLoginBlockchainHash': loginHashId,
+        });
 
         // Save locally
         final box = Hive.box(userBoxName);
         await box.put('currentUser', userData);
         await box.put('authToken', user.uid);
+        await box.put('lastLoginHash', loginHashId);
 
         return true;
       }

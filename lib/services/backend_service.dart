@@ -11,7 +11,7 @@ class BackendService {
       return 'http://localhost:3000/api';
     }
     // For Android physical device or emulator on same network
-    return 'http://10.88.138.74:3000/api'; // Your PC's IP
+    return 'http://10.191.242.74:3000/api'; // Your PC's IP
     // If using emulator on same machine, use: http://10.0.2.2:3000/api
   }
 

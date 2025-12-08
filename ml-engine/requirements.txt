@@ -10,3 +10,8 @@ shapely==2.0.4
 haversine==2.8.1
 python-dotenv==1.0.1
 
+# Ethereum Blockchain
+web3>=6.0.0
+eth-account>=0.10.0
+py-solc-x>=2.0.0
+

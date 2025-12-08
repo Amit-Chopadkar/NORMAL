@@ -7,6 +7,7 @@ class User {
   final String? nationality;
   final String? documentUrl;
   final String? hashId;
+  final String? blockchainHashId; // Ethereum blockchain hash ID
 
   User({
     required this.id,
@@ -17,6 +18,7 @@ class User {
     this.nationality,
     this.documentUrl,
     this.hashId,
+    this.blockchainHashId,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class User {
       nationality: json['nationality'],
       documentUrl: json['documentUrl'],
       hashId: json['hashId'],
+      blockchainHashId: json['blockchainHashId'],
     );
   }
 
@@ -42,6 +45,7 @@ class User {
       'nationality': nationality,
       'documentUrl': documentUrl,
       'hashId': hashId,
+      'blockchainHashId': blockchainHashId,
     };
   }
 }

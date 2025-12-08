@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from .alerts import dispatcher
 from .detection import engine
@@ -14,8 +15,21 @@ from .schemas import (
 )
 from .storage import store
 from .training import handle_training_request
+from .blockchain_routes import router as blockchain_router
 
-app = FastAPI(title="TourGuard ML Engine", version="1.0.0")
+app = FastAPI(title="TourGuard ML Engine", version="1.1.0")
+
+# Add CORS middleware for Flutter app
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include blockchain router
+app.include_router(blockchain_router)
 
 
 @app.get("/health")

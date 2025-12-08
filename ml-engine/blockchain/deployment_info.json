@@ -1,0 +1,9 @@
+{
+  "contract_address": "0xE3B1B34C879E0F57bC45Bd6aBABe7aE9A81b25c9",
+  "deployer": "0x55B573c67fcF7CD39806c850ED555b81e0a4B9ad",
+  "network": "http://127.0.0.1:8545",
+  "chain_id": 1337,
+  "block_number": 1,
+  "tx_hash": "69f5887ff2aec7c718759712193d67faf164d0a487e556c40e665d0dd1b6c6a2",
+  "gas_used": 1085579
+}

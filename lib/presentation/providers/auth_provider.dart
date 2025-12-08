@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/models/user_model.dart';
 import '../../data/services/auth_service.dart';
 import '../../services/backend_service.dart';
+import '../../services/blockchain_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -115,6 +116,44 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> syncBlockchainIdentity() async {
+    if (_user == null) return false;
+    
+    try {
+      // Try to register on blockchain
+      final result = await BlockchainService.storeRegistration(
+        userId: _user!.id,
+        email: _user!.email,
+        phone: _user!.phone,
+        name: _user!.name,
+      );
+      
+      if (result.success && result.hashId != null) {
+        // Update user with new hash
+        final updatedUser = User(
+          id: _user!.id,
+          name: _user!.name,
+          email: _user!.email,
+          phone: _user!.phone,
+          userType: _user!.userType,
+          nationality: _user!.nationality,
+          documentUrl: _user!.documentUrl,
+          hashId: _user!.hashId,
+          blockchainHashId: result.hashId,
+        );
+        
+        _user = updatedUser;
+        await _saveUserToPrefs(_user!);
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Sync error: $e');
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     _user = null;
     _emergencyContacts = [];
@@ -136,6 +175,7 @@ class AuthProvider with ChangeNotifier {
           'userType': user.userType,
           'nationality': user.nationality,
           'hashId': user.hashId,
+          'blockchainHashId': user.blockchainHashId,
         }));
   }
 
@@ -163,6 +203,7 @@ class AuthProvider with ChangeNotifier {
       'nationality': raw['nationality'],
       'documentUrl': raw['documentUrl'],
       'hashId': raw['hashId'],
+      'blockchainHashId': raw['blockchainHashId'],
     };
   }
 }
