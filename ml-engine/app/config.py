@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     model_filename: str = Field(default="anomaly_iforest.joblib")
     random_state: Optional[int] = Field(default=42)
 
+    # LLM Configuration
+    ollama_host: str = Field(default="http://localhost:11434")
+    ollama_model: str = Field(default="phi3:mini")
+    llm_enabled: bool = Field(default=True)
+    llm_timeout: int = Field(default=30)
+    llm_max_tokens: int = Field(default=500)
+
     class Config:
         env_prefix = "ML_ENGINE_"
         case_sensitive = False

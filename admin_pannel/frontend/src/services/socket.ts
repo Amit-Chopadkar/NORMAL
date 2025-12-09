@@ -5,7 +5,7 @@
 import { io, Socket } from 'socket.io-client';
 import { SosEvent } from '../types';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://172.17.5.58:5000';
 const SOCKET_NAMESPACE = '/admin';
 
 let socket: Socket | null = null;

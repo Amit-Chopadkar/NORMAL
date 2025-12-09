@@ -4,8 +4,9 @@ import '../models/place_model.dart';
 
 class PlaceCard extends StatelessWidget {
   final Place place;
+  final VoidCallback? onAddToItinerary;
 
-  const PlaceCard({super.key, required this.place});
+  const PlaceCard({super.key, required this.place, this.onAddToItinerary});
 
   Color _getCategoryColor(String category) {
     switch (category) {
@@ -182,20 +183,31 @@ class PlaceCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        // Navigate to place details
-                        _showPlaceDetails(context, place);
-                      },
-                      child: Text(
-                        'View Details →',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[600],
+                    if (onAddToItinerary != null)
+                      OutlinedButton.icon(
+                        onPressed: onAddToItinerary,
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('Add to Trip'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          textStyle: const TextStyle(fontSize: 12),
+                        ),
+                      )
+                    else
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to place details
+                          _showPlaceDetails(context, place);
+                        },
+                        child: Text(
+                          'View Details →',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[600],
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ],

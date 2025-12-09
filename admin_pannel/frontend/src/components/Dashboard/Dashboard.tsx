@@ -18,6 +18,8 @@ import { SosEvent, Incident } from '../../types';
 import { sosApi, incidentsApi } from '../../services/api';
 import { initializeSocket, onSosNew, onSosUpdate, disconnectSocket } from '../../services/socket';
 import RecentIncidents from './RecentIncidents';
+import { AIHealthStatus } from '../AIHealthStatus';
+import { AIFeaturesStatus } from '../AIFeaturesStatus';
 
 const Dashboard: React.FC = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -156,7 +158,7 @@ const Dashboard: React.FC = () => {
 
                 {/* Dashboard content */}
                 <main className="flex-1 overflow-y-auto">
-                    {/* Emergency SOS Banner */}
+                    {/* Emergency SOS Banner with AI Health Status */}
                     <div className="bg-danger text-white px-6 py-3 flex items-center justify-between">
                         <div className="flex items-center">
                             <span className="text-2xl font-bold mr-3">EMERGENCY SOS</span>
@@ -164,6 +166,12 @@ const Dashboard: React.FC = () => {
                                 {events.filter((e) => e.status === 'pending').length} pending alerts
                             </span>
                         </div>
+                        <AIHealthStatus />
+                    </div>
+
+                    {/* AI Features Status Panel */}
+                    <div className="px-4 pt-4">
+                        <AIFeaturesStatus />
                     </div>
 
                     {/* Main grid layout */}

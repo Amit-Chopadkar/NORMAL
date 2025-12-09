@@ -9,7 +9,7 @@ class ChatService {
   static Future<void> initialize() async {
     await Hive.openBox(cacheBoxName);
     
-    socket = IO.io('http://localhost:3000', {
+    socket = IO.io('http://172.17.5.58:3000', {
       'transports': ['websocket'],
       'autoConnect': false,
     });

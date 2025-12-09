@@ -8,12 +8,12 @@ class BackendService {
   // Base URL configuration
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:3000/api';
+      return 'http://172.17.5.58:3000/api';
     }
     // For Android physical device or emulator on same network
-    return 'http://10.191.242.74:3000/api'; // Your PC's IP
-    // If using emulator on same machine, use: http://10.0.2.2:3000/api
+    return 'http://172.17.5.58:3000/api'; // Your PC's IP
   }
+  // If using emulator on same machine, use: http://10.0.2.2:3000/api
 
   static const String _tokenKey = 'auth_token';
   static const String _userIdKey = 'user_id';

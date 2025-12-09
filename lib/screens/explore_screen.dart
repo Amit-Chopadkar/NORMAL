@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 import '../models/place_model.dart';
 import '../widgets/place_card.dart';
 import '../widgets/filter_chip.dart';
@@ -8,6 +9,8 @@ import '../widgets/explore_map_view.dart';
 import '../services/localization_service.dart';
 import '../services/places_api_service.dart';
 import '../services/location_service.dart';
+import '../services/itinerary_service.dart';
+import '../screens/safe_itinerary_screen.dart';
 
 enum ViewMode { list, map }
 
@@ -204,6 +207,61 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ],
         ),
       ),
+      floatingActionButton: _buildItineraryButton(),
+    );
+  }
+
+  Widget _buildItineraryButton() {
+    final itineraryService = ItineraryService();
+    final stopCount = itineraryService.stopCount;
+
+    return FloatingActionButton.extended(
+      onPressed: () async {
+        // Initialize itinerary if needed
+        if (itineraryService.currentItinerary == null && _currentPosition != null) {
+          itineraryService.createItinerary(
+            title: 'My Safe Trip',
+            date: DateTime.now(),
+            startLocation: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+          );
+        }
+
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const SafeItineraryScreen(),
+          ),
+        );
+        setState(() {}); // Refresh to update badge
+      },
+      icon: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          const Icon(Icons.route),
+          if (stopCount > 0)
+            Positioned(
+              right: -4,
+              top: -4,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  '$stopCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+      label: Text(stopCount > 0 ? 'Itinerary ($stopCount)' : 'Create Itinerary'),
+      backgroundColor: Colors.blue,
     );
   }
 
@@ -266,9 +324,54 @@ class _ExploreScreenState extends State<ExploreScreen> {
         final place = _places[index];
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: PlaceCard(place: place),
+          child: PlaceCard(
+            place: place,
+            onAddToItinerary: () => _addToItinerary(place),
+          ),
         );
       },
+    );
+  }
+
+  void _addToItinerary(Place place) {
+    final itineraryService = ItineraryService();
+    
+    // Initialize itinerary if needed
+    if (itineraryService.currentItinerary == null && _currentPosition != null) {
+      itineraryService.createItinerary(
+        title: 'My Safe Trip',
+        date: DateTime.now(),
+        startLocation: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+      );
+    }
+
+    // Add place to itinerary
+    itineraryService.addStop(
+      name: place.name,
+      location: LatLng(place.latitude, place.longitude),
+      category: place.category,
+      description: place.description,
+    );
+
+    setState(() {}); // Refresh to update button badge
+
+    // Show confirmation
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('✅ Added "${place.name}" to itinerary'),
+        action: SnackBarAction(
+          label: 'VIEW',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SafeItineraryScreen(),
+              ),
+            );
+          },
+        ),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 

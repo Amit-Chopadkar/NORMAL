@@ -68,6 +68,15 @@ class DetectionEngine:
             else settings.route_deviation_threshold_m
         )
 
+        # Import and use behavioral analyzer
+        from .behavioral_analyzer import get_behavioral_analyzer
+        analyzer = get_behavioral_analyzer()
+        
+        # Add observation to behavioral history
+        analyzer.add_observation(obs)
+        history = analyzer.get_observation_history(obs.tourist_id, obs.trip_id, hours=2)
+
+        # Check 1: Route deviation (existing)
         if route:
             deviation_m = min_distance_to_route(obs, route)
             if deviation_m > deviation_threshold:
@@ -81,18 +90,48 @@ class DetectionEngine:
                     )
                 )
 
+        # Check 2: Inactivity (existing)
         inactivity_alert = self._check_inactivity(obs)
         if inactivity_alert:
             alerts.append(inactivity_alert)
 
+        # Check 3: Danger zone (existing)
         danger_alert = self._check_danger_zone(obs)
         if danger_alert:
             alerts.append(danger_alert)
 
+        # Check 4: Basic anomaly (existing Isolation Forest)
         anomaly_alert = self._anomaly_score(obs)
         if anomaly_alert:
             alerts.append(anomaly_alert)
 
+        # NEW Check 5: Location dropoff detection
+        dropoff = analyzer.detect_location_dropoff(obs, history)
+        if dropoff:
+            alerts.append(
+                self._build_alert(
+                    obs,
+                    dropoff['type'],
+                    dropoff['severity'],
+                    dropoff['message'],
+                    {k: str(v) for k, v in dropoff.items() if k not in ['type', 'severity', 'message']},
+                )
+            )
+
+        # NEW Check 6: Movement pattern analysis
+        movement_anomaly = analyzer.analyze_movement_pattern(obs, history)
+        if movement_anomaly:
+            alerts.append(
+                self._build_alert(
+                    obs,
+                    movement_anomaly['type'],
+                    movement_anomaly['severity'],
+                    movement_anomaly['message'],
+                    {k: str(v) for k, v in movement_anomaly.items() if k not in ['type', 'severity', 'message']},
+                )
+            )
+
+        # Record alerts and return
         dispatched = []
         for alert in alerts:
             if store.record_alert(alert):

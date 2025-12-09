@@ -19,19 +19,19 @@ class ApiEnvironment {
     }
 
     if (kIsWeb) {
-      return 'http://localhost:3000/api/places';
+      return 'http://172.17.5.58:3000/api/places';
     }
 
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         // Android emulators reach the host machine via 10.0.2.2 by default.
-        return 'http://10.0.2.2:3000/api/places';
+        return 'http://172.17.5.58:3000/api/places';
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
       case TargetPlatform.windows:
       case TargetPlatform.linux:
       case TargetPlatform.fuchsia:
-        return 'http://localhost:3000/api/places';
+        return 'http://172.17.5.58:3000/api/places';
     }
   }
 
