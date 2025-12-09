@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,9 +33,11 @@ class Settings(BaseSettings):
     llm_timeout: int = Field(default=30)
     llm_max_tokens: int = Field(default=500)
 
-    class Config:
-        env_prefix = "ML_ENGINE_"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_prefix="ML_ENGINE_",
+        case_sensitive=False,
+        protected_namespaces=('settings_',)
+    )
 
 
 @lru_cache

@@ -5,6 +5,7 @@ import '../styles/AIComponents.css';
 export const AIHealthStatus: React.FC = () => {
   const [health, setHealth] = useState<AIHealth | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     checkHealth();
@@ -16,8 +17,12 @@ export const AIHealthStatus: React.FC = () => {
     try {
       const result = await aiService.checkHealth();
       setHealth(result);
-    } catch (err) {
+      setError(null);
+    } catch (err: any) {
       console.error('Health check failed:', err);
+      // Detailed error extraction
+      const msg = err.message || 'Unknown error';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -35,7 +40,10 @@ export const AIHealthStatus: React.FC = () => {
     return (
       <div className="ai-health-status offline">
         <span className="status-dot offline"></span>
-        <span>AI Services Offline</span>
+        <div className="flex flex-col">
+            <span>AI Services Offline</span>
+            {error && <span className="text-xs text-red-300 mt-1">Error: {error}</span>}
+        </div>
       </div>
     );
   }

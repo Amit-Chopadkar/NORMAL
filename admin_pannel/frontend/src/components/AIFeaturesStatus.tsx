@@ -110,9 +110,19 @@ export const AIFeaturesStatus: React.FC = () => {
 
             <div className="features-grid">
                 {/* Active Features */}
-                <div className="features-section">
+                <div 
+                    className="features-section" 
+                    style={unavailableFeatures.length === 0 ? { gridColumn: 'span 2' } : {}}
+                >
                     <h4 className="section-title">✅ Active Features</h4>
-                    <div className="features-list">
+                    <div 
+                        className="features-list"
+                        style={unavailableFeatures.length === 0 ? { 
+                            display: 'grid', 
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '12px' 
+                        } : {}}
+                    >
                         {activeFeatures.map((feature, idx) => (
                             <div key={idx} className="feature-card active" title={feature.description}>
                                 <div className="feature-icon">✅</div>

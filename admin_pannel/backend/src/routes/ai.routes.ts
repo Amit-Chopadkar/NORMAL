@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 const router = Router();
 
-const ML_ENGINE_URL = process.env.ML_ENGINE_URL || 'http://172.17.5.58:8082';
+const ML_ENGINE_URL = process.env.ML_ENGINE_URL || 'http://localhost:8000';
 
 // Get investigation report for a specific tourist
 router.post('/api/ai/investigation/report', async (req, res) => {

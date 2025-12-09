@@ -1,7 +1,7 @@
 // AI Service for Admin Panel
 // Connects to ML Engine via admin backend
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://172.17.5.58:5000';
+const API_BASE = 'http://localhost:5002';
 
 export interface DistressAssessment {
     distress_score: number;
