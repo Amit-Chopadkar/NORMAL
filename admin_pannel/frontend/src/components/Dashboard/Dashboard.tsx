@@ -179,7 +179,7 @@ const Dashboard: React.FC = () => {
                         {/* Left column: Map and list */}
                         <div className="col-span-12 lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
                             {/* Map */}
-                            <div className="h-[60%] relative">
+                            <div className="flex-[3] min-h-0 relative">
                                 <MapView
                                     events={events}
                                     selectedEvent={selectedEvent}
@@ -189,7 +189,7 @@ const Dashboard: React.FC = () => {
                             </div>
 
                             {/* User info and emergency contacts */}
-                            <div className="h-[40%] grid grid-cols-2 gap-4">
+                            <div className="flex-[2] min-h-0 grid grid-cols-2 gap-4">
                                 <UserInfoCard event={selectedEvent} />
                                 <EmergencyContacts event={selectedEvent} />
                             </div>

@@ -23,10 +23,36 @@ interface NearbyResourcesProps {
 
 const NearbyResources: React.FC<NearbyResourcesProps> = ({ event }) => {
     const resources: Resource[] = [
+        // Law Enforcement
         { icon: '🚔', name: 'Police Station', distance: '0.8 km', action: 'DISPATCH', actionClass: 'bg-success', latitude: 19.0760, longitude: 72.8777, phone: '112' },
-        { icon: '🚔', name: 'Central Police Zone', distance: '0.8 km', action: 'CONTACT', actionClass: 'bg-success', phone: '+91-22-2262-0111' },
-        { icon: '🏥', name: 'City General Hospital', distance: '1.2 km', action: 'CONTACT', actionClass: 'bg-success', phone: '+91-22-2373-5555' },
-        { icon: '🚒', name: 'Fire Station', distance: '0.5 km', action: 'CONTACT', actionClass: 'bg-success', phone: '101' },
+        { icon: '🚔', name: 'Central Police Zone', distance: '0.8 km', action: 'CONTACT', actionClass: 'bg-success', phone: '+91-364-2222-644' },
+        { icon: '👮', name: 'Tourist Police', distance: '1.0 km', action: 'CONTACT', actionClass: 'bg-success', phone: '1800-345-3644' },
+        
+        // Medical Services
+        { icon: '🏥', name: 'Civil Hospital Shillong', distance: '1.2 km', action: 'CONTACT', actionClass: 'bg-success', phone: '+91-364-2223-105' },
+        { icon: '🚑', name: 'Ambulance (Emergency)', distance: '0.9 km', action: 'CONTACT', actionClass: 'bg-danger', phone: '108' },
+        { icon: '⚕️', name: 'NEIGRIHMS Hospital', distance: '2.5 km', action: 'CONTACT', actionClass: 'bg-success', phone: '+91-364-2538-011' },
+        
+        // Fire & Rescue
+        { icon: '🚒', name: 'Fire Station', distance: '0.5 km', action: 'CONTACT', actionClass: 'bg-danger', phone: '101' },
+        { icon: '🚨', name: 'Fire Emergency', distance: '0.5 km', action: 'CONTACT', actionClass: 'bg-danger', phone: '+91-364-2224-202' },
+        
+        // Military & Defense
+        { icon: '🪖', name: 'Indian Army (Assam Rifles)', distance: '3.2 km', action: 'CONTACT', actionClass: 'bg-warning', phone: '+91-364-2501-234' },
+        { icon: '⚔️', name: 'Military Hospital', distance: '3.8 km', action: 'CONTACT', actionClass: 'bg-warning', phone: '+91-364-2570-285' },
+        
+        // Disaster Management
+        { icon: '🆘', name: 'SDRM (State Disaster Response)', distance: '1.5 km', action: 'CONTACT', actionClass: 'bg-danger', phone: '+91-364-2226-244' },
+        { icon: '🚁', name: 'NDRF (National Disaster Response)', distance: '4.0 km', action: 'CONTACT', actionClass: 'bg-danger', phone: '011-2671-9395' },
+        { icon: '⚠️', name: 'Disaster Management Control Room', distance: '1.8 km', action: 'CONTACT', actionClass: 'bg-danger', phone: '1070' },
+        
+        // Forest & Wildlife
+        { icon: '🌲', name: 'Forest Department', distance: '2.0 km', action: 'CONTACT', actionClass: 'bg-success', phone: '+91-364-2222-206' },
+        { icon: '🐘', name: 'Wildlife Emergency', distance: '2.5 km', action: 'CONTACT', actionClass: 'bg-success', phone: '+91-364-2501-640' },
+        
+        // Women & Child Safety
+        { icon: '👩', name: 'Women Helpline', distance: 'Statewide', action: 'CONTACT', actionClass: 'bg-purple-600', phone: '1091' },
+        { icon: '👶', name: 'Child Helpline', distance: 'Statewide', action: 'CONTACT', actionClass: 'bg-purple-600', phone: '1098' },
     ];
 
     const handleAction = (resource: Resource) => {

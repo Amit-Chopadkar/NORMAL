@@ -22,7 +22,7 @@ dependencies:
   
   # Notifications & Haptics
   flutter_local_notifications: ^18.0.0
-  vibration: ^1.8.0
+  vibration: ^2.0.0
   
   # Local Storage
   shared_preferences: ^2.2.0

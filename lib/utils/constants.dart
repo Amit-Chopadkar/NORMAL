@@ -97,17 +97,17 @@ class DemoData {
     {
       'id': 'RED_ZONE_1',
       'name': 'Danger zone ',
-      'latitude': 20.0000,
-      'longitude': 73.7800,
-      'radius': 1840,
+      'latitude': 25.611683,
+      'longitude': 91.901651,
+      'radius': 200,
       'color': 0xFFFF0000,
     },
         {
       'id': 'YELLOW_ZONE_2',
       'name': 'Forest zone ',
-      'latitude': 20.010320,
-      'longitude': 73.764101,
-      'radius': 110,
+      'latitude': 25.612388,
+      'longitude': 91.893788,
+      'radius': 200,
       'color': 0xFFFFFF00,
     },
   ];
